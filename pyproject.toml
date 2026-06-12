@@ -4,4 +4,24 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12.3"
-dependencies = []
+dependencies = [
+    "aiohttp>=3.14.1",
+    "folium>=0.20.0",
+    "geopandas>=1.1.3",
+    "jupyter>=1.1.1",
+    "lxml>=6.1.1",
+    "matplotlib>=3.10.9",
+    "numpy>=2.4.6",
+    "openmeteo-requests>=1.7.5",
+    "pandas>=3.0.3",
+    "pyarrow>=24.0.0",
+    "pydantic>=2.13.4",
+    "pyyaml>=6.0.3",
+    "requests>=2.34.2",
+    "requests-cache>=1.3.2",
+    "retry-requests>=2.0.0",
+    "scikit-learn>=1.9.0",
+    "seaborn>=0.13.2",
+    "shapely>=2.1.2",
+    "tqdm>=4.68.2",
+]

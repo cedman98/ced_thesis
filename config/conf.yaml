@@ -1,0 +1,114 @@
+marktstammdatenregister:
+  bulk_download_url: "https://download.marktstammdatenregister.de/Stichtag/Gesamtdatenexport_20260401_25.2.zip"
+  bulk_explanation_download_url: "https://www.marktstammdatenregister.de/MaStRHilfe/files/gesamtdatenexport/Dokumentation%20MaStR%20Gesamtdatenexport.zip"
+  
+  wind:
+    file_name: "EinheitenWind.xml"
+    local_path: "data/raw/mastr/EinheitenWind.xml"
+    schema_file_name: "xsd/EinheitenWind.xsd"
+    schema_local_path: "data/raw/mastr/EinheitenWind.xsd"
+  
+  solar:
+    file_name: "EinheitenSolar.xml"
+    local_path: "data/raw/mastr/EinheitenSolar.xml"
+    schema_file_name: "xsd/EinheitenSolar.xsd"
+    schema_local_path: "data/raw/mastr/EinheitenSolar.xsd"
+
+processing:
+  measurements:
+    final_columns:
+      - "station_id"
+      - "record_date"
+      - "average_wind_speed"
+      - "average_wind_direction"
+      - "air_pressure"
+      - "air_temperature_2m"
+      - "air_temperature_5cm"
+      - "relative_humidity"
+      - "dew_point_temperature"
+      - "precipitation_duration"
+      - "sum_precipitation_height"
+      - "precipitation_indicator"
+      - "quality_level"
+
+  weather_stations:
+    final_columns:
+      - "weather_station_id"
+      - "height"
+      - "latitude"
+      - "longitude"
+      - "name"
+      - "state"
+      - "start_date"
+      - "end_date"
+      - "accessible"
+      - "is_active"
+
+  wind_turbines:
+    final_columns:
+      - "unit_mastr_number"
+      - "last_update_date"
+      - "longitude"
+      - "latitude"
+      - "commissioning_date"
+      - "final_decommission_date"
+      - "gross_power"
+      - "net_nominal_power"
+      - "manufacturer"
+      - "technology"
+      - "type_designation"
+      - "hub_height"
+      - "rotor_diameter"
+
+  solar_installations:
+    final_columns:
+      - "unit_mastr_number"
+      - "last_update_date"
+      - "longitude"
+      - "latitude"
+      - "commissioning_date"
+      - "final_decommission_date"
+      - "gross_power"              # Equivalent to kWp (kilowatt-peak)
+      - "net_nominal_power"        # Inverter AC limit
+      - "is_ground_mounted"        # Critical flag: Freiflächenanlage vs. Gebäude (Rooftop)
+      - "azimuth"                  # Orientation: 180 = South, 90 = East, 270 = West
+      - "tilt"                     # Angle from horizontal
+      - "has_battery_storage"      # Boolean indicating behind-the-meter storage interference
+
+wind_power_calculation:
+  alpha: 0.14                      # Hellmann exponent for neutral atmospheric stability
+  measurement_height: 10           # Baseline meteorological measurement height (m)
+
+solar_power_calculation:
+  temperature_coefficient: -0.0035 # Efficiency loss per °C above 25°C (standard crystalline silicon)
+  stc_temperature: 25              # Standard Test Condition temperature (°C)
+  inverter_efficiency: 0.96        # Generic baseline for AC/DC transformation losses
+
+open_meteo:
+  archive_url: "https://archive-api.open-meteo.com/v1/archive"
+  forecast_url: "https://api.open-meteo.com/v1/forecast"
+  
+  openstreetmap:
+    relation_id: 62504             # Official OSM Relation ID for the State of Brandenburg
+    admin_level: 4                  # Federal State (Bundesland) administrative level in Germany
+    overpass_api_url: "https://overpass-api.de/api/interpreter"
+    geojson_local_path: "data/external/brandenburg_boundary.geojson"
+    
+  grid_resolution: 0.1
+  cluster_radius_km: 3.0
+  variables:
+    # Common variables
+    - "temperature_2m"
+    - "relative_humidity_2m"
+    - "surface_pressure"
+    - "cloud_cover"
+    # Wind-specific variables
+    - "wind_speed_10m"
+    - "wind_speed_100m"
+    - "wind_direction_10m"
+    - "wind_direction_100m"
+    # Solar-specific variables
+    - "shortwave_radiation"
+    - "direct_radiation"
+    - "diffuse_radiation"
+    - "direct_normal_irradiance"
