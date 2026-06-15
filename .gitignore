@@ -9,6 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+run_pipeline.sh
+
 GEMINI.md
 
-data/
+/data/
+/documentation/

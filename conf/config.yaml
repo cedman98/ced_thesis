@@ -1,18 +1,12 @@
 marktstammdatenregister:
   bulk_download_url: "https://download.marktstammdatenregister.de/Stichtag/Gesamtdatenexport_20260401_25.2.zip"
   bulk_explanation_download_url: "https://www.marktstammdatenregister.de/MaStRHilfe/files/gesamtdatenexport/Dokumentation%20MaStR%20Gesamtdatenexport.zip"
-  
   wind:
     file_name: "EinheitenWind.xml"
-    local_path: "data/raw/mastr/EinheitenWind.xml"
-    schema_file_name: "xsd/EinheitenWind.xsd"
-    schema_local_path: "data/raw/mastr/EinheitenWind.xsd"
-  
+    local_path: "data/mastr/gesamtdaten/EinheitenWind.xml"
   solar:
-    file_name: "EinheitenSolar.xml"
-    local_path: "data/raw/mastr/EinheitenSolar.xml"
-    schema_file_name: "xsd/EinheitenSolar.xsd"
-    schema_local_path: "data/raw/mastr/EinheitenSolar.xsd"
+    file_name: "EinheitenSolar"
+    local_path: "data/mastr/gesamtdaten"
 
 processing:
   measurements:
