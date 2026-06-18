@@ -106,3 +106,15 @@ open_meteo:
     - "direct_radiation"
     - "diffuse_radiation"
     - "direct_normal_irradiance"
+
+scraper:
+  api_base_url: "https://api-energiemonitor.eon.com"
+  tenant_id: "1101"
+  interval_minutes: 15
+  regions:
+    koenigs_wusterhausen:
+      code: "12061260"
+      csv_path: "data/webscrape_kwusterhausen.csv"
+    nauen:
+      code: "12063208"
+      csv_path: "data/webscrape_nauen.csv"
