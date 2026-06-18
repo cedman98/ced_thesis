@@ -148,6 +148,35 @@ def run_weather_ingestion(
     state_path = weather_out_dir / ".ingestion_state.json"
     mapping_path = weather_out_dir / "mapping_index.json"
 
+    # Lock mechanism to prevent concurrent runs
+    import atexit
+    lock_path = weather_out_dir / ".lock"
+    if lock_path.exists():
+        try:
+            with open(lock_path, "r", encoding="utf-8") as lf:
+                old_pid = int(lf.read().strip())
+            os.kill(old_pid, 0)
+            logger.info(f"Another ingestion process (PID {old_pid}) is already running. Exiting.")
+            return
+        except (ValueError, OSError):
+            logger.info("Removing stale lock file.")
+            try:
+                lock_path.unlink()
+            except Exception:
+                pass
+
+    with open(lock_path, "w", encoding="utf-8") as lf:
+        lf.write(str(os.getpid()))
+
+    def cleanup_lock():
+        try:
+            if lock_path.exists():
+                lock_path.unlink()
+        except Exception:
+            pass
+
+    atexit.register(cleanup_lock)
+
     # 2. Verify cluster files exist
     if not wind_clusters_path.exists():
         raise FileNotFoundError(f"Missing wind cluster file: {wind_clusters_path}")
@@ -217,8 +246,8 @@ def run_weather_ingestion(
         f"{total_pending} remaining."
     )
 
-    # 5. Group unique coordinates into batches of 20 locations
-    batch_size = 20
+    # 5. Group unique coordinates into batches of 5 locations
+    batch_size = 5
     batches = [pending_points[i : i + batch_size] for i in range(0, len(pending_points), batch_size)]
 
     # Resolve URL & API Key for commercial or default free usage
@@ -265,22 +294,112 @@ def run_weather_ingestion(
             f"Fetching batch {idx + 1}/{len(batches)} with {len(batch)} locations (lat: {batch_lats_str[:40]}...)"
         )
 
-        try:
-            state["daily_calls_count"] += 1
-            state["last_call_date"] = current_date
-            save_state(state_path, state)
+        success = False
+        max_retries = 5
+        retry_delay = 15.0
+        response = None
 
-            response = requests.get(archive_url, params=params, timeout=60)
+        for attempt in range(max_retries):
+            try:
+                if attempt == 0:
+                    state["daily_calls_count"] += 1
+                    state["last_call_date"] = current_date
+                    save_state(state_path, state)
 
-            # Handle rate-limit status code (429)
-            if response.status_code == 429:
-                logger.error(
-                    f"API returned 429 Rate Limit error on batch index: {idx}."
+                response = requests.get(archive_url, params=params, timeout=60)
+
+                # Handle rate-limit status code (429)
+                if response.status_code == 429:
+                    reason = ""
+                    try:
+                        reason = response.json().get("reason", "")
+                    except Exception:
+                        pass
+                    
+                    if "Daily API request limit exceeded" in reason:
+                        now = datetime.datetime.now(datetime.timezone.utc)
+                        next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
+                        sleep_seconds = (next_midnight - now).total_seconds()
+                        logger.warning(
+                            f"Daily API request limit exceeded on batch {idx + 1}/{len(batches)}. "
+                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_midnight.isoformat()}) before retrying..."
+                        )
+                        time.sleep(sleep_seconds)
+                        continue
+
+                    if "Hourly API request limit exceeded" in reason:
+                        now = datetime.datetime.now(datetime.timezone.utc)
+                        next_hour = (now + datetime.timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
+                        sleep_seconds = (next_hour - now).total_seconds()
+                        logger.warning(
+                            f"Hourly API request limit exceeded on batch {idx + 1}/{len(batches)}. "
+                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_hour.isoformat()}) before retrying..."
+                        )
+                        time.sleep(sleep_seconds)
+                        continue
+
+                    logger.warning(
+                        f"API returned 429 Rate Limit error on batch {idx + 1}/{len(batches)}, attempt {attempt + 1}/{max_retries}. "
+                        f"Sleeping for {retry_delay} seconds before retrying..."
+                    )
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                    continue
+
+                response.raise_for_status()
+                success = True
+                break
+
+            except requests.exceptions.RequestException as e:
+                status_code = e.response.status_code if e.response is not None else "Unknown"
+                logger.warning(
+                    f"Network error on batch {idx + 1}/{len(batches)}, attempt {attempt + 1}/{max_retries} (HTTP status: {status_code}): {e}."
                 )
-                print_resume_instructions(idx)
-                return
+                if status_code == 429:
+                    reason = ""
+                    if e.response is not None:
+                        try:
+                            reason = e.response.json().get("reason", "")
+                        except Exception:
+                            pass
+                    
+                    if "Daily API request limit exceeded" in reason:
+                        now = datetime.datetime.now(datetime.timezone.utc)
+                        next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
+                        sleep_seconds = (next_midnight - now).total_seconds()
+                        logger.warning(
+                            f"Daily API request limit exceeded on batch {idx + 1}/{len(batches)}. "
+                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_midnight.isoformat()}) before retrying..."
+                        )
+                        time.sleep(sleep_seconds)
+                        continue
 
-            response.raise_for_status()
+                    if "Hourly API request limit exceeded" in reason:
+                        now = datetime.datetime.now(datetime.timezone.utc)
+                        next_hour = (now + datetime.timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
+                        sleep_seconds = (next_hour - now).total_seconds()
+                        logger.warning(
+                            f"Hourly API request limit exceeded on batch {idx + 1}/{len(batches)}. "
+                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_hour.isoformat()}) before retrying..."
+                        )
+                        time.sleep(sleep_seconds)
+                        continue
+
+                    logger.warning(f"Sleeping for {retry_delay} seconds due to 429 rate limit...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+                    continue
+                else:
+                    logger.warning("Sleeping for 5.0 seconds before retrying...")
+                    time.sleep(5.0)
+                    continue
+
+        if not success:
+            logger.error(f"Failed to fetch batch {idx + 1}/{len(batches)} after {max_retries} attempts.")
+            print_resume_instructions(idx)
+            return
+
+        try:
             data = response.json()
 
             # Wrap dict in list if querying a single location
@@ -309,16 +428,11 @@ def run_weather_ingestion(
             save_state(state_path, state)
             logger.info(f"Successfully processed batch {idx + 1}/{len(batches)}.")
 
-            # Rate limit spacing delay (1.0 second) to prevent slamming Open-Meteo
-            time.sleep(1.0)
+            # Rate limit spacing delay (2.0 seconds) to prevent slamming Open-Meteo
+            time.sleep(2.0)
 
-        except requests.exceptions.RequestException as e:
-            status_code = e.response.status_code if e.response is not None else "Unknown"
-            logger.error(
-                f"Network error on batch {idx + 1} (HTTP status: {status_code}): {e}"
-            )
-            if status_code == 429:
-                logger.error("API returned 429 Rate Limit. Ingestion paused.")
+        except Exception as e:
+            logger.error(f"Error processing data for batch {idx + 1}/{len(batches)}: {e}")
             print_resume_instructions(idx)
             return
 
