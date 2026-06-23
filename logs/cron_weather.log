@@ -446,3 +446,481 @@
 2026-06-18 13:00:01,501 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
 2026-06-18 13:00:01,501 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
 === Weather Ingestion Cron Run End: Thu 18 Jun 13:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 14:00:01 UTC 2026 ===
+2026-06-18 14:00:02,055 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 14:00:02,056 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 14:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 15:00:01 UTC 2026 ===
+2026-06-18 15:00:01,918 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 15:00:01,918 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 15:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 16:00:01 UTC 2026 ===
+2026-06-18 16:00:02,042 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 16:00:02,042 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 16:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 17:00:01 UTC 2026 ===
+2026-06-18 17:00:01,890 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 17:00:01,890 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 17:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 18:00:01 UTC 2026 ===
+2026-06-18 18:00:02,357 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 18:00:02,357 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 18:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 19:00:01 UTC 2026 ===
+2026-06-18 19:00:01,923 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 19:00:01,923 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 19:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 20:00:01 UTC 2026 ===
+2026-06-18 20:00:01,489 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 20:00:01,489 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 20:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 21:00:01 UTC 2026 ===
+2026-06-18 21:00:01,501 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 21:00:01,501 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 21:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 22:00:01 UTC 2026 ===
+2026-06-18 22:00:02,081 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 22:00:02,081 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 22:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Thu 18 Jun 23:00:01 UTC 2026 ===
+2026-06-18 23:00:02,232 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-18 23:00:02,232 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Thu 18 Jun 23:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 00:00:01 UTC 2026 ===
+2026-06-19 00:00:02,134 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 00:00:02,134 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 00:00:02 UTC 2026 ===
+2026-06-19 00:05:24,548 - __main__ - INFO - Successfully processed batch 31/48.
+2026-06-19 00:05:26,549 - __main__ - INFO - Fetching batch 32/48 with 5 locations (lat: 53.0,53.0,53.0,53.1,53.1...)
+2026-06-19 00:05:26,632 - __main__ - WARNING - API returned 429 Rate Limit error on batch 32/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 00:05:41,708 - __main__ - WARNING - API returned 429 Rate Limit error on batch 32/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 00:06:33,796 - __main__ - INFO - Successfully processed batch 32/48.
+2026-06-19 00:06:35,797 - __main__ - INFO - Fetching batch 33/48 with 5 locations (lat: 53.1,53.1,53.1,53.1,53.1...)
+2026-06-19 00:06:35,872 - __main__ - WARNING - API returned 429 Rate Limit error on batch 33/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 00:06:50,954 - __main__ - WARNING - API returned 429 Rate Limit error on batch 33/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 00:07:37,326 - __main__ - INFO - Successfully processed batch 33/48.
+2026-06-19 00:07:39,326 - __main__ - INFO - Fetching batch 34/48 with 5 locations (lat: 53.1,53.1,53.1,53.1,53.1...)
+2026-06-19 00:07:39,408 - __main__ - WARNING - API returned 429 Rate Limit error on batch 34/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 00:07:54,489 - __main__ - WARNING - API returned 429 Rate Limit error on batch 34/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 00:08:40,047 - __main__ - INFO - Successfully processed batch 34/48.
+2026-06-19 00:08:42,048 - __main__ - INFO - Fetching batch 35/48 with 5 locations (lat: 53.1,53.1,53.1,53.1,53.1...)
+2026-06-19 00:08:42,128 - __main__ - WARNING - API returned 429 Rate Limit error on batch 35/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 00:08:57,211 - __main__ - WARNING - API returned 429 Rate Limit error on batch 35/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 00:09:39,444 - __main__ - INFO - Successfully processed batch 35/48.
+2026-06-19 00:09:41,444 - __main__ - INFO - Fetching batch 36/48 with 5 locations (lat: 53.1,53.1,53.1,53.1,53.1...)
+2026-06-19 00:09:41,523 - __main__ - WARNING - API returned 429 Rate Limit error on batch 36/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 00:09:56,602 - __main__ - WARNING - API returned 429 Rate Limit error on batch 36/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 00:10:46,284 - __main__ - INFO - Successfully processed batch 36/48.
+2026-06-19 00:10:48,284 - __main__ - INFO - Fetching batch 37/48 with 5 locations (lat: 53.1,53.1,53.1,53.1,53.1...)
+2026-06-19 00:10:48,368 - __main__ - WARNING - API returned 429 Rate Limit error on batch 37/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 00:11:23,823 - __main__ - INFO - Successfully processed batch 37/48.
+2026-06-19 00:11:25,823 - __main__ - INFO - Fetching batch 38/48 with 5 locations (lat: 53.1,53.1,53.1,53.2,53.2...)
+2026-06-19 00:11:25,910 - __main__ - WARNING - API returned 429 Rate Limit error on batch 38/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 00:11:40,983 - __main__ - WARNING - API returned 429 Rate Limit error on batch 38/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 00:12:25,995 - __main__ - INFO - Successfully processed batch 38/48.
+2026-06-19 00:12:27,995 - __main__ - INFO - Fetching batch 39/48 with 5 locations (lat: 53.2,53.2,53.2,53.2,53.2...)
+2026-06-19 00:12:28,075 - __main__ - WARNING - API returned 429 Rate Limit error on batch 39/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 00:12:43,147 - __main__ - WARNING - API returned 429 Rate Limit error on batch 39/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 00:13:13,221 - __main__ - WARNING - Hourly API request limit exceeded on batch 39/48. Sleeping for 2866.8 seconds (until 2026-06-19T01:01:00+00:00) before retrying...
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 01:00:01 UTC 2026 ===
+2026-06-19 01:00:02,030 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 01:00:02,030 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 01:00:02 UTC 2026 ===
+2026-06-19 01:01:06,447 - __main__ - INFO - Successfully processed batch 39/48.
+2026-06-19 01:01:08,448 - __main__ - INFO - Fetching batch 40/48 with 5 locations (lat: 53.2,53.2,53.2,53.2,53.2...)
+2026-06-19 01:01:12,799 - __main__ - INFO - Successfully processed batch 40/48.
+2026-06-19 01:01:14,799 - __main__ - INFO - Fetching batch 41/48 with 5 locations (lat: 53.2,53.2,53.2,53.2,53.2...)
+2026-06-19 01:01:14,873 - __main__ - WARNING - API returned 429 Rate Limit error on batch 41/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 01:01:29,959 - __main__ - WARNING - API returned 429 Rate Limit error on batch 41/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 01:02:00,041 - __main__ - WARNING - API returned 429 Rate Limit error on batch 41/48, attempt 3/5. Sleeping for 60.0 seconds before retrying...
+2026-06-19 01:03:09,669 - __main__ - INFO - Successfully processed batch 41/48.
+2026-06-19 01:03:11,669 - __main__ - INFO - Fetching batch 42/48 with 5 locations (lat: 53.2,53.2,53.2,53.2,53.2...)
+2026-06-19 01:03:17,186 - __main__ - INFO - Successfully processed batch 42/48.
+2026-06-19 01:03:19,186 - __main__ - INFO - Fetching batch 43/48 with 5 locations (lat: 53.2,53.2,53.2,53.2,53.2...)
+2026-06-19 01:03:19,260 - __main__ - WARNING - API returned 429 Rate Limit error on batch 43/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 01:03:34,349 - __main__ - WARNING - API returned 429 Rate Limit error on batch 43/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 01:04:19,799 - __main__ - INFO - Successfully processed batch 43/48.
+2026-06-19 01:04:21,799 - __main__ - INFO - Fetching batch 44/48 with 5 locations (lat: 53.3,53.3,53.3,53.3,53.3...)
+2026-06-19 01:04:21,879 - __main__ - WARNING - API returned 429 Rate Limit error on batch 44/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 01:04:36,960 - __main__ - WARNING - API returned 429 Rate Limit error on batch 44/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 01:05:11,788 - __main__ - INFO - Successfully processed batch 44/48.
+2026-06-19 01:05:13,788 - __main__ - INFO - Fetching batch 45/48 with 5 locations (lat: 53.3,53.3,53.3,53.3,53.3...)
+2026-06-19 01:05:13,868 - __main__ - WARNING - API returned 429 Rate Limit error on batch 45/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 01:05:28,951 - __main__ - WARNING - API returned 429 Rate Limit error on batch 45/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 01:05:59,026 - __main__ - WARNING - API returned 429 Rate Limit error on batch 45/48, attempt 3/5. Sleeping for 60.0 seconds before retrying...
+2026-06-19 01:07:22,964 - __main__ - INFO - Successfully processed batch 45/48.
+2026-06-19 01:07:24,964 - __main__ - INFO - Fetching batch 46/48 with 5 locations (lat: 53.3,53.3,53.3,53.3,53.3...)
+2026-06-19 01:07:28,833 - __main__ - INFO - Successfully processed batch 46/48.
+2026-06-19 01:07:30,834 - __main__ - INFO - Fetching batch 47/48 with 5 locations (lat: 53.4,53.4,53.4,53.4,53.4...)
+2026-06-19 01:07:30,901 - __main__ - WARNING - API returned 429 Rate Limit error on batch 47/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 01:07:45,977 - __main__ - WARNING - API returned 429 Rate Limit error on batch 47/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 01:08:16,053 - __main__ - WARNING - Hourly API request limit exceeded on batch 47/48. Sleeping for 3163.9 seconds (until 2026-06-19T02:01:00+00:00) before retrying...
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 02:00:01 UTC 2026 ===
+2026-06-19 02:00:01,541 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 02:00:01,541 - __main__ - INFO - Another ingestion process (PID 594217) is already running. Exiting.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 02:00:01 UTC 2026 ===
+2026-06-19 02:01:10,883 - __main__ - INFO - Successfully processed batch 47/48.
+2026-06-19 02:01:12,883 - __main__ - INFO - Fetching batch 48/48 with 5 locations (lat: 53.4,53.4,53.5,53.5,53.5...)
+2026-06-19 02:01:12,960 - __main__ - WARNING - API returned 429 Rate Limit error on batch 48/48, attempt 1/5. Sleeping for 15.0 seconds before retrying...
+2026-06-19 02:01:28,043 - __main__ - WARNING - API returned 429 Rate Limit error on batch 48/48, attempt 2/5. Sleeping for 30.0 seconds before retrying...
+2026-06-19 02:01:58,123 - __main__ - WARNING - API returned 429 Rate Limit error on batch 48/48, attempt 3/5. Sleeping for 60.0 seconds before retrying...
+2026-06-19 02:03:13,202 - __main__ - INFO - Successfully processed batch 48/48.
+2026-06-19 02:03:15,202 - __main__ - INFO - All weather data ingestion completed successfully!
+=== Weather Ingestion Cron Run End: Fri 19 Jun 02:03:15 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 03:00:01 UTC 2026 ===
+2026-06-19 03:00:02,142 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 03:00:02,163 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 03:00:02,164 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 03:00:02,164 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 03:00:02,164 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 03:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 04:00:01 UTC 2026 ===
+2026-06-19 04:00:01,317 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 04:00:01,339 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 04:00:01,339 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 04:00:01,339 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 04:00:01,339 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 04:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 05:00:01 UTC 2026 ===
+2026-06-19 05:00:01,872 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 05:00:01,894 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 05:00:01,894 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 05:00:01,895 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 05:00:01,895 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 05:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 06:00:01 UTC 2026 ===
+2026-06-19 06:00:01,701 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 06:00:01,727 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 06:00:01,727 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 06:00:01,727 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 06:00:01,727 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 06:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 07:00:01 UTC 2026 ===
+2026-06-19 07:00:01,948 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 07:00:01,970 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 07:00:01,970 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 07:00:01,970 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 07:00:01,970 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 07:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 08:00:01 UTC 2026 ===
+2026-06-19 08:00:01,989 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 08:00:02,011 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 08:00:02,011 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 08:00:02,011 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 08:00:02,011 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 08:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 09:00:01 UTC 2026 ===
+2026-06-19 09:00:01,805 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 09:00:01,827 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 09:00:01,827 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 09:00:01,827 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 09:00:01,828 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 09:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 10:00:01 UTC 2026 ===
+2026-06-19 10:00:01,810 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 10:00:01,832 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 10:00:01,832 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 10:00:01,832 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 10:00:01,832 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 10:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 11:00:01 UTC 2026 ===
+2026-06-19 11:00:01,874 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 11:00:01,896 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 11:00:01,896 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 11:00:01,896 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 11:00:01,896 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 11:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 12:00:01 UTC 2026 ===
+2026-06-19 12:00:02,264 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 12:00:02,286 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 12:00:02,287 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 12:00:02,287 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 12:00:02,287 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 12:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 13:00:01 UTC 2026 ===
+2026-06-19 13:00:02,277 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 13:00:02,303 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 13:00:02,303 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 13:00:02,304 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 13:00:02,304 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 13:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 14:00:01 UTC 2026 ===
+2026-06-19 14:00:02,072 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 14:00:02,095 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 14:00:02,095 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 14:00:02,095 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 14:00:02,095 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 14:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 15:00:01 UTC 2026 ===
+2026-06-19 15:00:01,785 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 15:00:01,808 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 15:00:01,808 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 15:00:01,808 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 15:00:01,808 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 15:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 16:00:01 UTC 2026 ===
+2026-06-19 16:00:02,176 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 16:00:02,198 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 16:00:02,198 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 16:00:02,199 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 16:00:02,199 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 16:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 17:00:01 UTC 2026 ===
+2026-06-19 17:00:02,084 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 17:00:02,107 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 17:00:02,107 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 17:00:02,107 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 17:00:02,107 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 17:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 18:00:01 UTC 2026 ===
+2026-06-19 18:00:01,540 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 18:00:01,562 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-19 18:00:01,562 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-19 18:00:01,562 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-19 18:00:01,562 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Fri 19 Jun 18:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 19:00:01 UTC 2026 ===
+2026-06-19 19:00:01,318 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ced/bachelor/final/src/data/weather_ingestion.py", line 447, in <module>
+    run_weather_ingestion()
+  File "/home/ced/bachelor/final/src/data/weather_ingestion.py", line 168, in run_weather_ingestion
+    with open(lock_path, "w", encoding="utf-8") as lf:
+OSError: [Errno 28] No space left on device
+=== Weather Ingestion Cron Run End: Fri 19 Jun 19:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 20:00:01 UTC 2026 ===
+2026-06-19 20:00:01,809 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 20:00:01,809 - __main__ - INFO - Removing stale lock file.
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ced/bachelor/final/src/data/weather_ingestion.py", line 447, in <module>
+    run_weather_ingestion()
+  File "/home/ced/bachelor/final/src/data/weather_ingestion.py", line 168, in run_weather_ingestion
+    with open(lock_path, "w", encoding="utf-8") as lf:
+OSError: [Errno 28] No space left on device
+=== Weather Ingestion Cron Run End: Fri 19 Jun 20:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Fri 19 Jun 21:00:01 UTC 2026 ===
+2026-06-19 21:00:01,295 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-19 21:00:01,295 - __main__ - INFO - Removing stale lock file.
+OSError: [Errno 28] No spa=== Weather Ingestion Cron Run Start: Mon 22 Jun 10:00:01 UTC 2026 ===
+2026-06-22 10:00:01,862 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 10:00:01,862 - __main__ - INFO - Removing stale lock file.
+2026-06-22 10:00:01,884 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 10:00:01,884 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 10:00:01,884 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 10:00:01,885 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 10:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 11:00:01 UTC 2026 ===
+2026-06-22 11:00:01,488 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 11:00:01,511 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 11:00:01,511 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 11:00:01,511 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 11:00:01,511 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 11:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 12:00:01 UTC 2026 ===
+2026-06-22 12:00:01,606 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 12:00:01,629 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 12:00:01,629 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 12:00:01,629 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 12:00:01,629 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 12:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 13:00:01 UTC 2026 ===
+2026-06-22 13:00:01,916 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 13:00:01,938 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 13:00:01,938 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 13:00:01,938 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 13:00:01,938 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 13:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 14:00:01 UTC 2026 ===
+2026-06-22 14:00:01,357 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 14:00:01,379 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 14:00:01,379 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 14:00:01,379 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 14:00:01,379 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 14:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 15:00:01 UTC 2026 ===
+2026-06-22 15:00:01,313 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 15:00:01,335 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 15:00:01,335 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 15:00:01,335 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 15:00:01,335 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 15:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 16:00:01 UTC 2026 ===
+2026-06-22 16:00:01,517 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 16:00:01,539 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 16:00:01,539 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 16:00:01,539 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 16:00:01,539 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 16:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 17:00:01 UTC 2026 ===
+2026-06-22 17:00:01,507 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 17:00:01,531 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 17:00:01,531 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 17:00:01,531 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 17:00:01,531 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 17:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 18:00:01 UTC 2026 ===
+2026-06-22 18:00:01,970 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 18:00:01,993 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 18:00:01,993 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 18:00:01,993 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 18:00:01,993 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 18:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 19:00:01 UTC 2026 ===
+2026-06-22 19:00:01,946 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 19:00:01,973 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 19:00:01,973 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 19:00:01,973 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 19:00:01,974 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 19:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 20:00:01 UTC 2026 ===
+2026-06-22 20:00:01,511 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 20:00:01,535 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 20:00:01,535 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 20:00:01,535 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 20:00:01,535 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 20:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 21:00:01 UTC 2026 ===
+2026-06-22 21:00:01,486 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 21:00:01,509 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 21:00:01,509 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 21:00:01,510 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 21:00:01,510 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 21:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 22:00:01 UTC 2026 ===
+2026-06-22 22:00:02,264 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 22:00:02,286 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 22:00:02,287 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 22:00:02,287 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 22:00:02,287 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 22:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Mon 22 Jun 23:00:01 UTC 2026 ===
+2026-06-22 23:00:01,760 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-22 23:00:01,783 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-22 23:00:01,783 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-22 23:00:01,783 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-22 23:00:01,783 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Mon 22 Jun 23:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 00:00:01 UTC 2026 ===
+2026-06-23 00:00:01,929 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 00:00:01,954 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 00:00:01,954 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 00:00:01,954 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 00:00:01,955 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 00:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 01:00:01 UTC 2026 ===
+2026-06-23 01:00:02,103 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 01:00:02,125 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 01:00:02,125 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 01:00:02,125 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 01:00:02,125 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 01:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 02:00:01 UTC 2026 ===
+2026-06-23 02:00:01,380 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 02:00:01,402 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 02:00:01,402 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 02:00:01,402 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 02:00:01,403 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 02:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 03:00:01 UTC 2026 ===
+2026-06-23 03:00:01,614 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 03:00:01,637 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 03:00:01,637 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 03:00:01,637 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 03:00:01,637 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 03:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 04:00:01 UTC 2026 ===
+2026-06-23 04:00:01,868 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 04:00:01,892 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 04:00:01,892 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 04:00:01,892 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 04:00:01,893 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 04:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 05:00:01 UTC 2026 ===
+2026-06-23 05:00:01,664 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 05:00:01,687 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 05:00:01,687 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 05:00:01,687 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 05:00:01,687 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 05:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 06:00:01 UTC 2026 ===
+2026-06-23 06:00:01,781 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 06:00:01,803 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 06:00:01,803 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 06:00:01,803 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 06:00:01,804 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 06:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 07:00:01 UTC 2026 ===
+2026-06-23 07:00:01,805 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 07:00:01,828 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 07:00:01,828 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 07:00:01,828 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 07:00:01,829 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 07:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 08:00:01 UTC 2026 ===
+2026-06-23 08:00:02,262 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 08:00:02,285 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 08:00:02,285 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 08:00:02,285 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 08:00:02,286 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 08:00:02 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 09:00:01 UTC 2026 ===
+2026-06-23 09:00:01,375 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 09:00:01,399 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 09:00:01,399 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 09:00:01,399 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 09:00:01,399 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 09:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 10:00:01 UTC 2026 ===
+2026-06-23 10:00:01,590 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 10:00:01,614 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 10:00:01,614 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 10:00:01,614 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 10:00:01,614 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 10:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 11:00:01 UTC 2026 ===
+2026-06-23 11:00:01,606 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 11:00:01,628 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 11:00:01,629 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 11:00:01,629 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 11:00:01,629 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 11:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 12:00:01 UTC 2026 ===
+2026-06-23 12:00:01,437 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 12:00:01,460 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 12:00:01,460 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 12:00:01,460 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 12:00:01,460 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 12:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 13:00:01 UTC 2026 ===
+2026-06-23 13:00:01,565 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 13:00:01,587 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 13:00:01,587 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 13:00:01,587 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 13:00:01,588 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 13:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 14:00:01 UTC 2026 ===
+2026-06-23 14:00:01,520 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 14:00:01,542 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 14:00:01,542 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 14:00:01,542 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 14:00:01,543 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 14:00:01 UTC 2026 ===
+=== Weather Ingestion Cron Run Start: Tue 23 Jun 15:00:01 UTC 2026 ===
+2026-06-23 15:00:02,125 - src.data.boundary_fetcher - INFO - Configuration loaded successfully from conf/config.yaml
+2026-06-23 15:00:02,149 - __main__ - INFO - Saved structural mapping index for 1093 clusters to data/processed/weather/mapping_index.json
+2026-06-23 15:00:02,149 - __main__ - INFO - Identified 430 unique grid nodes across Brandenburg.
+2026-06-23 15:00:02,149 - __main__ - INFO - Loaded existing ingestion state with 430 completed grid nodes.
+2026-06-23 15:00:02,149 - __main__ - INFO - All unique weather grid cells already ingested. weather_ingestion is complete.
+=== Weather Ingestion Cron Run End: Tue 23 Jun 15:00:02 UTC 2026 ===
