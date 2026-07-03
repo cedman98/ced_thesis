@@ -89,14 +89,6 @@ def load_district_boundaries(config_path='conf/config.yaml'):
     return gdf
 
 
-def _active(df):
-    """Commissioned and not yet decommissioned as of now (the 'active' fleet)."""
-    dec = pd.to_datetime(df['final_decommission_date'], errors='coerce', utc=True)
-    com = pd.to_datetime(df['commissioning_date'], errors='coerce', utc=True)
-    now = pd.Timestamp.now(tz='UTC')
-    return df[dec.isna() & (com.isna() | (com <= now))].copy()
-
-
 def _assign(df, boundaries):
     """Point-in-polygon: tag each asset with its district name (one spatial join)."""
     g = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['longitude'], df['latitude']),
@@ -110,8 +102,10 @@ def load_district_fleets(config_path='conf/config.yaml'):
     district — shape-compatible with municipal_fleet so assemble_municipal_features
     is reused verbatim. Returns {name: (wind, solar, wind_mw, solar_mw, nodes)}."""
     boundaries = load_district_boundaries(config_path)
-    wind = _assign(_active(pd.read_csv(WIND_CSV)), boundaries)
-    solar = _assign(_active(pd.read_csv(SOLAR_CSV)), boundaries)
+    # mastr_bulk_parser keeps only status-35 ("in operation") units, so the raw
+    # CSVs already ARE the active fleet — no commissioning/decommission filter.
+    wind = _assign(pd.read_csv(WIND_CSV), boundaries)
+    solar = _assign(pd.read_csv(SOLAR_CSV), boundaries)
     for d in (wind, solar):
         d['lat_snap'] = d['latitude'].round(1)
         d['lon_snap'] = d['longitude'].round(1)

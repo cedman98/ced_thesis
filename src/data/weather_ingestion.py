@@ -90,6 +90,40 @@ def save_state(state_path: Path, state: Dict[str, Any]) -> None:
                 pass
 
 
+def _rate_limit_sleep(reason: str, batch_label: str, retry_delay: float) -> float:
+    """Sleep out a 429 according to its reason; returns the next backoff delay.
+
+    Daily/hourly quota exhaustion sleeps until the quota window resets (with a
+    small safety margin); anything else backs off exponentially.
+    """
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if "Daily API request limit exceeded" in reason:
+        until = (now + datetime.timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
+    elif "Hourly API request limit exceeded" in reason:
+        until = (now + datetime.timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
+    else:
+        logger.warning(
+            f"API returned 429 Rate Limit error on {batch_label}. "
+            f"Sleeping for {retry_delay} seconds before retrying..."
+        )
+        time.sleep(retry_delay)
+        return retry_delay * 2  # exponential backoff
+    sleep_seconds = (until - now).total_seconds()
+    logger.warning(
+        f"{reason} on {batch_label}. Sleeping for {sleep_seconds:.1f} seconds "
+        f"(until {until.isoformat()}) before retrying..."
+    )
+    time.sleep(sleep_seconds)
+    return retry_delay
+
+
+def _429_reason(response) -> str:
+    try:
+        return response.json().get("reason", "")
+    except Exception:
+        return ""
+
+
 def print_resume_instructions(batch_idx: int) -> None:
     """Outputs clear instructions to the log/console on how to resume execution.
 
@@ -333,40 +367,8 @@ def run_weather_ingestion(
 
                 # Handle rate-limit status code (429)
                 if response.status_code == 429:
-                    reason = ""
-                    try:
-                        reason = response.json().get("reason", "")
-                    except Exception:
-                        pass
-                    
-                    if "Daily API request limit exceeded" in reason:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
-                        sleep_seconds = (next_midnight - now).total_seconds()
-                        logger.warning(
-                            f"Daily API request limit exceeded on batch {idx + 1}/{len(batches)}. "
-                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_midnight.isoformat()}) before retrying..."
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
-
-                    if "Hourly API request limit exceeded" in reason:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        next_hour = (now + datetime.timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
-                        sleep_seconds = (next_hour - now).total_seconds()
-                        logger.warning(
-                            f"Hourly API request limit exceeded on batch {idx + 1}/{len(batches)}. "
-                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_hour.isoformat()}) before retrying..."
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
-
-                    logger.warning(
-                        f"API returned 429 Rate Limit error on batch {idx + 1}/{len(batches)}, attempt {attempt + 1}/{max_retries}. "
-                        f"Sleeping for {retry_delay} seconds before retrying..."
-                    )
-                    time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
+                    retry_delay = _rate_limit_sleep(
+                        _429_reason(response), f"batch {idx + 1}/{len(batches)}", retry_delay)
                     continue
 
                 response.raise_for_status()
@@ -379,38 +381,9 @@ def run_weather_ingestion(
                     f"Network error on batch {idx + 1}/{len(batches)}, attempt {attempt + 1}/{max_retries} (HTTP status: {status_code}): {e}."
                 )
                 if status_code == 429:
-                    reason = ""
-                    if e.response is not None:
-                        try:
-                            reason = e.response.json().get("reason", "")
-                        except Exception:
-                            pass
-                    
-                    if "Daily API request limit exceeded" in reason:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
-                        sleep_seconds = (next_midnight - now).total_seconds()
-                        logger.warning(
-                            f"Daily API request limit exceeded on batch {idx + 1}/{len(batches)}. "
-                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_midnight.isoformat()}) before retrying..."
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
-
-                    if "Hourly API request limit exceeded" in reason:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        next_hour = (now + datetime.timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
-                        sleep_seconds = (next_hour - now).total_seconds()
-                        logger.warning(
-                            f"Hourly API request limit exceeded on batch {idx + 1}/{len(batches)}. "
-                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_hour.isoformat()}) before retrying..."
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
-
-                    logger.warning(f"Sleeping for {retry_delay} seconds due to 429 rate limit...")
-                    time.sleep(retry_delay)
-                    retry_delay *= 2
+                    reason = _429_reason(e.response) if e.response is not None else ""
+                    retry_delay = _rate_limit_sleep(
+                        reason, f"batch {idx + 1}/{len(batches)}", retry_delay)
                     continue
                 else:
                     logger.warning("Sleeping for 5.0 seconds before retrying...")

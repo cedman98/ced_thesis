@@ -119,6 +119,10 @@ def assemble_municipal_features(kw_wind, kw_solar, wind_nameplate_mw, solar_name
             pw = (w['shortwave_radiation'] / 1000.0) * cap_mw * SOLAR_PERFORMANCE_RATIO
             solar_priors.append(pd.DataFrame({'p': pw}, index=w.index))
 
+    if not weather_dfs:
+        raise RuntimeError(
+            "No weather data for any node of this fleet — run the weather "
+            "ingestion/extension first (see missing-node warnings above).")
     idx0 = weather_dfs[0].index
     wind_prior_mw = pd.concat(wind_priors, axis=1).sum(axis=1) if wind_priors else pd.Series(0.0, index=idx0)
     solar_prior_mw = pd.concat(solar_priors, axis=1).sum(axis=1) if solar_priors else pd.Series(0.0, index=idx0)
