@@ -24,7 +24,7 @@ from src.validation.kw_features import (
     municipal_fleet, assemble_municipal_features, apply_affine, load_municipalities,
 )
 from src.models.train_lightgbm import QUANTILES, quantile_model_path
-from src.features.schema import FEATURE_COLS
+from src.features.schema import FEATURE_COLS, CF_CLIP
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ def fetch_forecast_weather(node_coords, forecast_days=2, max_retries=4, pause=0.
 def _downscale_interval(X, tech, c):
     """LightGBM quantile CF -> calibrated MW (lower, median, upper) for `tech`.
     `c` is the resolved per-tech calibration {scale, offset, cap_mw}."""
-    P = np.vstack([np.clip(joblib.load(quantile_model_path(tech, q)).predict(X[FEATURE_COLS]), 0.0, 1.0)
+    P = np.vstack([np.clip(joblib.load(quantile_model_path(tech, q)).predict(X[FEATURE_COLS]), 0.0, CF_CLIP)
                    for q in QUANTILES]).T
     P.sort(axis=1)  # enforce q10 <= q50 <= q90
     cols = {}

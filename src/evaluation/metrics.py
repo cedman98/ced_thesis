@@ -144,7 +144,7 @@ def rolling_metrics(y_true, y_pred, window_hours=48, step_hours=24):
     w, step = pd.Timedelta(hours=window_hours), pd.Timedelta(hours=step_hours)
     out, t, end = [], s.index.min(), s.index.max()
     while t + w <= end + pd.Timedelta(hours=1):
-        blk = s.loc[t: t + w]
+        blk = s[(s.index >= t) & (s.index < t + w)]  # half-open: exactly window_hours
         if len(blk) >= max(3, window_hours // 4):
             m = all_metrics(blk["y"], blk["p"])
             m["window_start"] = t
