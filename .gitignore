@@ -23,3 +23,7 @@ CLAUDE.md
 /lightning_logs/
 /models/
 /checkpoints/
+
+# Ignore all files in results/ except .gitkeep
+/results/*
+!/results/.gitkeep
