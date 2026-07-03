@@ -3,8 +3,9 @@
 Downscaling contract (fixed): macro model predicts a *capacity factor* from
 scale-free features; local generation = CF x local_nameplate x k, where k is a
 single per-(model,technology) constant calibrated on a held-out split to
-reconcile the CF definition and local fleet composition. Evaluated on the
-remaining data with a rolling-window harness (no hardcoded window).
+reconcile the CF definition and local fleet composition. Calibrated on the
+first 40% of the telemetry overlap, evaluated on the remaining 60%
+(no hardcoded window).
 """
 
 import json
@@ -18,7 +19,7 @@ import torch
 from src.validation.kw_features import (
     build_municipal_features, load_municipalities, calibrate_affine, apply_affine,
 )
-from src.features.schema import FEATURE_COLS
+from src.features.schema import FEATURE_COLS, CF_CLIP
 from src.models.train_bilstm import BiLSTM
 from src.models.train_lightgbm import QUANTILES, quantile_model_path
 from src.evaluation import metrics as M
@@ -32,13 +33,13 @@ CAL_FRACTION = 0.4  # first 40% calibrates k, rest validates
 
 def predict_cf_tree(model_name, tech, X):
     model = joblib.load(f'models/{model_name}_{tech}.pkl')
-    return pd.Series(np.clip(model.predict(X[FEATURE_COLS]), 0.0, 1.0), index=X.index)
+    return pd.Series(np.clip(model.predict(X[FEATURE_COLS]), 0.0, CF_CLIP), index=X.index)
 
 
 def predict_cf_lightgbm_interval(tech, X):
     """LightGBM quantile forecasts: (lower, median, upper) CF series (q10/q50/q90),
-    clipped to [0,1] and monotone-sorted so the independent quantiles never cross."""
-    P = np.vstack([np.clip(joblib.load(quantile_model_path(tech, q)).predict(X[FEATURE_COLS]), 0.0, 1.0)
+    clipped to the training bound and monotone-sorted so the quantiles never cross."""
+    P = np.vstack([np.clip(joblib.load(quantile_model_path(tech, q)).predict(X[FEATURE_COLS]), 0.0, CF_CLIP)
                    for q in QUANTILES]).T
     P.sort(axis=1)
     return (pd.Series(P[:, 0], index=X.index), pd.Series(P[:, 1], index=X.index),
@@ -79,7 +80,7 @@ def predict_cf_bilstm(tech, X):
     with torch.no_grad():
         out = model(torch.tensor(windows, dtype=torch.float32)).squeeze(-1).numpy()
     cf = sc[tech].inverse_transform(out.reshape(-1, 1)).flatten()
-    return pd.Series(np.clip(cf, 0.0, 1.0), index=X.index[seq:])
+    return pd.Series(np.clip(cf, 0.0, CF_CLIP), index=X.index[seq:])
 
 
 def _evaluate(model_name, tech, cf, actuals, cap_mw, cal_idx, val_idx):

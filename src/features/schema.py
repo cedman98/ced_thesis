@@ -24,6 +24,11 @@ FEATURE_COLS = [
 # described; it was never actually implemented until now).
 TARGET_CF = {"wind": "wind_cf_50hz", "solar": "solar_cf_50hz"}
 
+# CF predictions/targets are clipped to [0, CF_CLIP] everywhere. >1 is legal
+# (the effective-capacity proxy can undershoot true nameplate); trainers and
+# validators must use the SAME bound or municipal results silently diverge.
+CF_CLIP = 1.5
+
 # Raw MW targets + the effective-capacity series used to build the CF, kept in
 # the matrix so MW can be reconstructed for reporting. Never fed to a model.
 TARGET_MW = {"wind": "wind_onshore_mw_50hz", "solar": "solar_pv_mw_50hz"}

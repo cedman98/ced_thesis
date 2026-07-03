@@ -19,7 +19,7 @@ import pandas as pd
 import lightgbm as lgb
 
 from src.features.validation_splitter import PurgedExpandingWindowSplitter
-from src.features.schema import FEATURE_COLS, TARGET_CF, TARGET_MW, CAP_COLS
+from src.features.schema import FEATURE_COLS, TARGET_CF, TARGET_MW, CAP_COLS, CF_CLIP
 from src.evaluation import metrics as M
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -66,7 +66,7 @@ def _fit_quantiles(X, y):
 def _predict_interval(models, X):
     """(lower, median, upper) CF arrays, clipped and monotone-sorted so the
     independently-fit quantiles never cross."""
-    P = np.vstack([np.clip(models[q].predict(X), 0.0, 1.5) for q in QUANTILES]).T
+    P = np.vstack([np.clip(models[q].predict(X), 0.0, CF_CLIP) for q in QUANTILES]).T
     P.sort(axis=1)
     return P[:, 0], P[:, 1], P[:, 2]
 

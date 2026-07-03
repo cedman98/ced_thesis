@@ -16,7 +16,7 @@ from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 from src.validation.kw_features import (
     build_municipal_features, load_municipalities, calibrate_affine, apply_affine,
 )
-from src.features.schema import TARGET_CF
+from src.features.schema import TARGET_CF, CF_CLIP
 from src.validation.municipal_validator import (
     ACTUAL_COL, CAL_FRACTION, CONSOLIDATED_PATH, save_calibration,
 )
@@ -39,7 +39,7 @@ def _predict_cf(ckpt, tech, X):
     preds, idx = out[0], out[2]
     # x_to_index returns the time_idx of the FIRST decoder step, so the 24-step
     # horizon covers [time_idx, time_idx + 23] and preds[:, 23] belongs to +23.
-    cf_1h = np.clip(preds[:, 23].cpu().numpy(), 0.0, 1.0)
+    cf_1h = np.clip(preds[:, 23].cpu().numpy(), 0.0, CF_CLIP)
     target_time_idx = idx['time_idx'].values + 23
     m = dict(zip(target_time_idx, cf_1h))
     return pd.Series(d['time_idx'].map(m).values, index=d.index).dropna()

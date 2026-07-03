@@ -18,7 +18,7 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 
 from src.features.validation_splitter import PurgedExpandingWindowSplitter
-from src.features.schema import FEATURE_COLS, TARGET_CF, TARGET_MW, CAP_COLS
+from src.features.schema import FEATURE_COLS, TARGET_CF, TARGET_MW, CAP_COLS, CF_CLIP
 from src.evaluation import metrics as M
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -124,7 +124,7 @@ def train_and_evaluate_bilstm(matrix_path: str = 'data/processed/ml_training_mat
             te_dl = DataLoader(TimeSeriesDataset(Xte, yte), batch_size=256, shuffle=False)
             model = train_model(BiLSTM(len(FEATURE_COLS)), tl, vl)
 
-            pred_cf = np.clip(_predict_cf(model, te_dl, sy, device), 0.0, 1.5)
+            pred_cf = np.clip(_predict_cf(model, te_dl, sy, device), 0.0, CF_CLIP)
             # Targets/caps aligned: dataset emits target at idx+SEQ_LEN.
             y_cf = df[TARGET_CF[tech]].iloc[te].values[SEQ_LEN:]
             cap = df[CAP_COLS[tech]].iloc[te].values[SEQ_LEN:]

@@ -14,7 +14,7 @@ import xgboost as xgb
 from interpret.glassbox import ExplainableBoostingRegressor
 
 from src.features.validation_splitter import PurgedExpandingWindowSplitter
-from src.features.schema import FEATURE_COLS, TARGET_CF, TARGET_MW, CAP_COLS
+from src.features.schema import FEATURE_COLS, TARGET_CF, TARGET_MW, CAP_COLS, CF_CLIP
 from src.evaluation import metrics as M
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -53,12 +53,12 @@ def train_and_evaluate_comparisons(matrix_path: str = 'data/processed/ml_trainin
 
             xgbm = xgb.XGBRegressor(**XGB_PARAMS)
             xgbm.fit(X.iloc[tr], y.iloc[tr])
-            xpred = np.clip(xgbm.predict(X.iloc[te]), 0.0, 1.5)
+            xpred = np.clip(xgbm.predict(X.iloc[te]), 0.0, CF_CLIP)
             rows += M.cv_rows("xgboost", tech, fold, y.iloc[te], xpred, cap, y_mw)
 
             ebm = ExplainableBoostingRegressor(random_state=42)
             ebm.fit(X.iloc[tr], y.iloc[tr])
-            epred = np.clip(ebm.predict(X.iloc[te]), 0.0, 1.5)
+            epred = np.clip(ebm.predict(X.iloc[te]), 0.0, CF_CLIP)
             rows += M.cv_rows("ebm", tech, fold, y.iloc[te], epred, cap, y_mw)
 
             logger.info(
