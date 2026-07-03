@@ -110,23 +110,35 @@ def run_weather_ingestion(
     config_path: str = "conf/config.yaml",
     start_date: str = "2022-01-01",
     end_date: str = "2026-06-01",
+    mode: str = "reanalysis",
 ) -> None:
-    """Orchestrates historical weather data ingestion for all unique grid locations.
+    """Orchestrates weather data ingestion for all unique grid locations.
 
     Reads geospatial cluster coordinates from wind and solar clusters, maps them
     to 0.1-degree grid cells, filters out already downloaded grid nodes, and
-    queries Open-Meteo in batches of 20 locations. Writes timeseries weather data
+    queries Open-Meteo in batches of 5 locations. Writes timeseries weather data
     as compressed Parquet files and creates a mapping index for downstream tasks.
+
+    Two modes select the data source and (isolated) output directory:
+      - ``reanalysis``: Open-Meteo archive (ERA5 actuals) -> data/processed/weather/
+      - ``forecast``:   Open-Meteo historical-forecast archive (NWP model runs) ->
+                        data/processed/weather_forecast/
+    Both are strictly UTC. The historical-forecast endpoint is the archived
+    output of the forecast model over the same date range, which is exactly what
+    lets us quantify the NWP gap against reanalysis on identical timestamps.
 
     Args:
         config_path: Path to the configuration YAML file.
-        start_date: Start date of historical query (YYYY-MM-DD), defaults to '2022-01-01'.
-        end_date: End date of historical query (YYYY-MM-DD), defaults to '2026-06-01'.
+        start_date: Start date of query (YYYY-MM-DD), defaults to '2022-01-01'.
+        end_date: End date of query (YYYY-MM-DD), defaults to '2026-06-01'.
+        mode: 'reanalysis' or 'forecast'.
 
     Raises:
         FileNotFoundError: If the input cluster files do not exist.
         RuntimeError: If critical ingestion errors occur.
     """
+    if mode not in ("reanalysis", "forecast"):
+        raise ValueError(f"mode must be 'reanalysis' or 'forecast', got {mode!r}")
     config = load_config(config_path)
     open_meteo_config = config.get("open_meteo", {})
     hourly_variables = open_meteo_config.get("variables", [])
@@ -139,7 +151,8 @@ def run_weather_ingestion(
     wind_clusters_path = processed_dir / "wind_clusters.csv"
     solar_clusters_path = processed_dir / "solar_clusters.csv"
     
-    weather_out_dir = processed_dir / "weather"
+    weather_out_dir = processed_dir / ("weather" if mode == "reanalysis" else "weather_forecast")
+    weather_subdir = weather_out_dir.name  # used to stamp per-node paths in the mapping index
     grid_nodes_dir = weather_out_dir / "grid_nodes"
     
     # Ensure output directories exist
@@ -204,7 +217,7 @@ def run_weather_ingestion(
                 "centroid_lon": c_lon,
                 "grid_lat": grid_lat,
                 "grid_lon": grid_lon,
-                "parquet_path": f"data/processed/weather/grid_nodes/node_{grid_lat:.1f}_{grid_lon:.1f}.parquet"
+                "parquet_path": f"data/processed/{weather_subdir}/grid_nodes/node_{grid_lat:.1f}_{grid_lon:.1f}.parquet"
             }
 
     map_clusters(wind_df)
@@ -250,14 +263,24 @@ def run_weather_ingestion(
     batch_size = 5
     batches = [pending_points[i : i + batch_size] for i in range(0, len(pending_points), batch_size)]
 
-    # Resolve URL & API Key for commercial or default free usage
+    # Resolve URL & API Key for commercial or default free usage. Reanalysis hits
+    # the ERA5 archive; forecast hits the historical-forecast archive (past NWP
+    # model runs over the same date range).
+    # ponytail: forecast mode uses the historical-forecast archive so the gap
+    # study aligns on real timestamps; for a live operational run swap to
+    # open_meteo.forecast_url with forecast_days=1.
     api_key = os.environ.get("OPEN_METEO_API_KEY") or open_meteo_config.get("api_key")
-    if api_key:
-        archive_url = "https://customer-api.open-meteo.com/v1/archive"
-        logger.info("Using commercial Open-Meteo Customer API with API Key.")
+    if mode == "forecast":
+        base_url = (
+            "https://customer-historical-forecast-api.open-meteo.com/v1/forecast"
+            if api_key else "https://historical-forecast-api.open-meteo.com/v1/forecast"
+        )
     else:
-        archive_url = "https://archive-api.open-meteo.com/v1/archive"
-        logger.info(f"Using public Open-Meteo Archive API endpoint: {archive_url}")
+        base_url = (
+            "https://customer-api.open-meteo.com/v1/archive"
+            if api_key else "https://archive-api.open-meteo.com/v1/archive"
+        )
+    logger.info(f"[{mode}] Using Open-Meteo endpoint: {base_url} (api_key={'yes' if api_key else 'no'})")
 
     # Rate limiting thresholds
     DAILY_CALL_LIMIT = 10000
@@ -306,7 +329,7 @@ def run_weather_ingestion(
                     state["last_call_date"] = current_date
                     save_state(state_path, state)
 
-                response = requests.get(archive_url, params=params, timeout=60)
+                response = requests.get(base_url, params=params, timeout=60)
 
                 # Handle rate-limit status code (429)
                 if response.status_code == 429:
@@ -440,8 +463,15 @@ def run_weather_ingestion(
 
 
 if __name__ == "__main__":
+    import argparse
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    run_weather_ingestion()
+    p = argparse.ArgumentParser(description="Open-Meteo weather ingestion.")
+    p.add_argument("--mode", choices=["reanalysis", "forecast"], default="reanalysis")
+    p.add_argument("--start-date", default="2022-01-01")
+    p.add_argument("--end-date", default="2026-06-01")
+    args = p.parse_args()
+    run_weather_ingestion(start_date=args.start_date, end_date=args.end_date, mode=args.mode)
