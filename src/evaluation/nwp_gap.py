@@ -127,7 +127,7 @@ def _write_markdown(report: pd.DataFrame, common_n: int) -> None:
         f.write("\n".join(lines))
 
 
-def run() -> pd.DataFrame:
+def run(n_splits: int = 4, test_duration: str = "365D") -> pd.DataFrame:
     for path in (REANALYSIS_MATRIX, FORECAST_MATRIX):
         if not os.path.exists(path):
             raise FileNotFoundError(
@@ -143,7 +143,8 @@ def run() -> pd.DataFrame:
     # quantile), but freshly trained per fold so nothing is in-sample.
     factories = {t: (lambda: lgb.LGBMRegressor(objective="quantile", alpha=0.5, **LGB_PARAMS))
                  for t in ("wind", "solar")}
-    report = compute_gap(df_re, df_fc, factories)
+    report = compute_gap(df_re, df_fc, factories,
+                         n_splits=n_splits, test_duration=test_duration)
 
     os.makedirs("results", exist_ok=True)
     report.to_csv(CSV_OUT, index=False)
@@ -185,8 +186,15 @@ def demo() -> None:
 
 
 if __name__ == "__main__":
-    import sys
-    if "--selfcheck" in sys.argv:
+    import argparse
+    p = argparse.ArgumentParser(description="Quantify the NWP gap (OOF, purged CV).")
+    p.add_argument("--selfcheck", action="store_true")
+    # Shrink folds when the forecast matrix covers less than 4 years, e.g. a
+    # 2-year fetch -> --splits 4 --test-days 120.
+    p.add_argument("--splits", type=int, default=4)
+    p.add_argument("--test-days", type=int, default=365)
+    args = p.parse_args()
+    if args.selfcheck:
         demo()
     else:
-        run()
+        run(n_splits=args.splits, test_duration=f"{args.test_days}D")
