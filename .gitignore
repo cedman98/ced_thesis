@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+.python-version
 
 # Virtual environments
 .venv
@@ -12,7 +13,17 @@ wheels/
 run_pipeline.sh
 
 GEMINI.md
+CLAUDE.md
+.claude/
 
 /data/
 /documentation/
 /outputs/
+/logs/
+/lightning_logs/
+/models/
+/checkpoints/
+
+# Ignore all files in results/ except .gitkeep
+/results/*
+!/results/.gitkeep
