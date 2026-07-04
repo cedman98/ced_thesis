@@ -86,9 +86,11 @@ class PurgedExpandingWindowSplitter:
             # The training window ends at test_start minus the purge gap
             train_end_dt = test_start_dt - self.purge_gap
 
-            # Construct boolean masks for training and testing
+            # Construct boolean masks for training and testing. The test window
+            # is half-open at the start so adjacent folds (fold i's test_end ==
+            # fold i+1's test_start) never share a boundary timestamp.
             train_mask = (dts >= t_start) & (dts <= train_end_dt)
-            test_mask = (dts >= test_start_dt) & (dts <= test_end_dt)
+            test_mask = (dts > test_start_dt) & (dts <= test_end_dt)
 
             # Convert boolean masks to integer index arrays
             train_indices = np.where(train_mask)[0]

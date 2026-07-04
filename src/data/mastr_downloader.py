@@ -22,7 +22,7 @@ from shapely.ops import linemerge, polygonize, unary_union
 
 logger = logging.getLogger(__name__)
 
-def load_config(config_path: str = "config/conf.yaml") -> Dict[str, Any]:
+def load_config(config_path: str = "conf/config.yaml") -> Dict[str, Any]:
     """Loads the YAML configuration file.
 
     Args:

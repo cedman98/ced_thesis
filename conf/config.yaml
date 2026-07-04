@@ -115,6 +115,40 @@ scraper:
     koenigs_wusterhausen:
       code: "12061260"
       csv_path: "data/webscrape_kwusterhausen.csv"
+      lat: 52.298
+      lon: 13.626
+      results_dir: "results/kwusterhausen"   # kept for existing notebooks 05/07
     nauen:
       code: "12063208"
       csv_path: "data/webscrape_nauen.csv"
+      lat: 52.61
+      lon: 12.87
+      results_dir: "results/nauen"
+
+# State-wide forecasting registry: the 14 Landkreise + 4 kreisfreie Städte of
+# Brandenburg. Assets are assigned to a district by point-in-polygon (MaStR has
+# no Kreis field), so boundaries are fetched once from Nominatim and cached.
+districts:
+  boundaries_geojson: "data/external/brandenburg_districts.geojson"
+  results_dir: "results/forecasts"
+  fallback_mode: "identity"   # identity (scale 1.0 / offset 0.0) | pooled (mean scale, offset 0)
+  landkreise:
+    - "Barnim"
+    - "Dahme-Spreewald"
+    - "Elbe-Elster"
+    - "Havelland"
+    - "Märkisch-Oderland"
+    - "Oberhavel"
+    - "Oberspreewald-Lausitz"
+    - "Oder-Spree"
+    - "Ostprignitz-Ruppin"
+    - "Potsdam-Mittelmark"
+    - "Prignitz"
+    - "Spree-Neiße"
+    - "Teltow-Fläming"
+    - "Uckermark"
+  kreisfreie_staedte:
+    - "Brandenburg an der Havel"
+    - "Potsdam"
+    - "Cottbus"
+    - "Frankfurt (Oder)"

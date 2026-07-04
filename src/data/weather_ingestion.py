@@ -90,6 +90,40 @@ def save_state(state_path: Path, state: Dict[str, Any]) -> None:
                 pass
 
 
+def _rate_limit_sleep(reason: str, batch_label: str, retry_delay: float) -> float:
+    """Sleep out a 429 according to its reason; returns the next backoff delay.
+
+    Daily/hourly quota exhaustion sleeps until the quota window resets (with a
+    small safety margin); anything else backs off exponentially.
+    """
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if "Daily API request limit exceeded" in reason:
+        until = (now + datetime.timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
+    elif "Hourly API request limit exceeded" in reason:
+        until = (now + datetime.timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
+    else:
+        logger.warning(
+            f"API returned 429 Rate Limit error on {batch_label}. "
+            f"Sleeping for {retry_delay} seconds before retrying..."
+        )
+        time.sleep(retry_delay)
+        return retry_delay * 2  # exponential backoff
+    sleep_seconds = (until - now).total_seconds()
+    logger.warning(
+        f"{reason} on {batch_label}. Sleeping for {sleep_seconds:.1f} seconds "
+        f"(until {until.isoformat()}) before retrying..."
+    )
+    time.sleep(sleep_seconds)
+    return retry_delay
+
+
+def _429_reason(response) -> str:
+    try:
+        return response.json().get("reason", "")
+    except Exception:
+        return ""
+
+
 def print_resume_instructions(batch_idx: int) -> None:
     """Outputs clear instructions to the log/console on how to resume execution.
 
@@ -110,23 +144,35 @@ def run_weather_ingestion(
     config_path: str = "conf/config.yaml",
     start_date: str = "2022-01-01",
     end_date: str = "2026-06-01",
+    mode: str = "reanalysis",
 ) -> None:
-    """Orchestrates historical weather data ingestion for all unique grid locations.
+    """Orchestrates weather data ingestion for all unique grid locations.
 
     Reads geospatial cluster coordinates from wind and solar clusters, maps them
     to 0.1-degree grid cells, filters out already downloaded grid nodes, and
-    queries Open-Meteo in batches of 20 locations. Writes timeseries weather data
+    queries Open-Meteo in batches of 5 locations. Writes timeseries weather data
     as compressed Parquet files and creates a mapping index for downstream tasks.
+
+    Two modes select the data source and (isolated) output directory:
+      - ``reanalysis``: Open-Meteo archive (ERA5 actuals) -> data/processed/weather/
+      - ``forecast``:   Open-Meteo historical-forecast archive (NWP model runs) ->
+                        data/processed/weather_forecast/
+    Both are strictly UTC. The historical-forecast endpoint is the archived
+    output of the forecast model over the same date range, which is exactly what
+    lets us quantify the NWP gap against reanalysis on identical timestamps.
 
     Args:
         config_path: Path to the configuration YAML file.
-        start_date: Start date of historical query (YYYY-MM-DD), defaults to '2022-01-01'.
-        end_date: End date of historical query (YYYY-MM-DD), defaults to '2026-06-01'.
+        start_date: Start date of query (YYYY-MM-DD), defaults to '2022-01-01'.
+        end_date: End date of query (YYYY-MM-DD), defaults to '2026-06-01'.
+        mode: 'reanalysis' or 'forecast'.
 
     Raises:
         FileNotFoundError: If the input cluster files do not exist.
         RuntimeError: If critical ingestion errors occur.
     """
+    if mode not in ("reanalysis", "forecast"):
+        raise ValueError(f"mode must be 'reanalysis' or 'forecast', got {mode!r}")
     config = load_config(config_path)
     open_meteo_config = config.get("open_meteo", {})
     hourly_variables = open_meteo_config.get("variables", [])
@@ -139,7 +185,8 @@ def run_weather_ingestion(
     wind_clusters_path = processed_dir / "wind_clusters.csv"
     solar_clusters_path = processed_dir / "solar_clusters.csv"
     
-    weather_out_dir = processed_dir / "weather"
+    weather_out_dir = processed_dir / ("weather" if mode == "reanalysis" else "weather_forecast")
+    weather_subdir = weather_out_dir.name  # used to stamp per-node paths in the mapping index
     grid_nodes_dir = weather_out_dir / "grid_nodes"
     
     # Ensure output directories exist
@@ -204,7 +251,7 @@ def run_weather_ingestion(
                 "centroid_lon": c_lon,
                 "grid_lat": grid_lat,
                 "grid_lon": grid_lon,
-                "parquet_path": f"data/processed/weather/grid_nodes/node_{grid_lat:.1f}_{grid_lon:.1f}.parquet"
+                "parquet_path": f"data/processed/{weather_subdir}/grid_nodes/node_{grid_lat:.1f}_{grid_lon:.1f}.parquet"
             }
 
     map_clusters(wind_df)
@@ -250,14 +297,24 @@ def run_weather_ingestion(
     batch_size = 5
     batches = [pending_points[i : i + batch_size] for i in range(0, len(pending_points), batch_size)]
 
-    # Resolve URL & API Key for commercial or default free usage
+    # Resolve URL & API Key for commercial or default free usage. Reanalysis hits
+    # the ERA5 archive; forecast hits the historical-forecast archive (past NWP
+    # model runs over the same date range).
+    # ponytail: forecast mode uses the historical-forecast archive so the gap
+    # study aligns on real timestamps; for a live operational run swap to
+    # open_meteo.forecast_url with forecast_days=1.
     api_key = os.environ.get("OPEN_METEO_API_KEY") or open_meteo_config.get("api_key")
-    if api_key:
-        archive_url = "https://customer-api.open-meteo.com/v1/archive"
-        logger.info("Using commercial Open-Meteo Customer API with API Key.")
+    if mode == "forecast":
+        base_url = (
+            "https://customer-historical-forecast-api.open-meteo.com/v1/forecast"
+            if api_key else "https://historical-forecast-api.open-meteo.com/v1/forecast"
+        )
     else:
-        archive_url = "https://archive-api.open-meteo.com/v1/archive"
-        logger.info(f"Using public Open-Meteo Archive API endpoint: {archive_url}")
+        base_url = (
+            "https://customer-api.open-meteo.com/v1/archive"
+            if api_key else "https://archive-api.open-meteo.com/v1/archive"
+        )
+    logger.info(f"[{mode}] Using Open-Meteo endpoint: {base_url} (api_key={'yes' if api_key else 'no'})")
 
     # Rate limiting thresholds
     DAILY_CALL_LIMIT = 10000
@@ -298,52 +355,25 @@ def run_weather_ingestion(
         max_retries = 5
         retry_delay = 15.0
         response = None
+        failures = 0  # network errors / unexplained 429s; quota sleeps don't count
 
-        for attempt in range(max_retries):
+        state["daily_calls_count"] += 1
+        state["last_call_date"] = current_date
+        save_state(state_path, state)
+
+        # Quota 429s (hourly/daily/minutely limit) sleep until the window resets
+        # and retry indefinitely — a 4-year x 430-node backfill *will* exhaust the
+        # free hourly quota many times over; that must never abort the run.
+        while failures < max_retries:
             try:
-                if attempt == 0:
-                    state["daily_calls_count"] += 1
-                    state["last_call_date"] = current_date
-                    save_state(state_path, state)
+                response = requests.get(base_url, params=params, timeout=60)
 
-                response = requests.get(archive_url, params=params, timeout=60)
-
-                # Handle rate-limit status code (429)
                 if response.status_code == 429:
-                    reason = ""
-                    try:
-                        reason = response.json().get("reason", "")
-                    except Exception:
-                        pass
-                    
-                    if "Daily API request limit exceeded" in reason:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
-                        sleep_seconds = (next_midnight - now).total_seconds()
-                        logger.warning(
-                            f"Daily API request limit exceeded on batch {idx + 1}/{len(batches)}. "
-                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_midnight.isoformat()}) before retrying..."
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
-
-                    if "Hourly API request limit exceeded" in reason:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        next_hour = (now + datetime.timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
-                        sleep_seconds = (next_hour - now).total_seconds()
-                        logger.warning(
-                            f"Hourly API request limit exceeded on batch {idx + 1}/{len(batches)}. "
-                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_hour.isoformat()}) before retrying..."
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
-
-                    logger.warning(
-                        f"API returned 429 Rate Limit error on batch {idx + 1}/{len(batches)}, attempt {attempt + 1}/{max_retries}. "
-                        f"Sleeping for {retry_delay} seconds before retrying..."
-                    )
-                    time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
+                    reason = _429_reason(response)
+                    retry_delay = _rate_limit_sleep(
+                        reason, f"batch {idx + 1}/{len(batches)}", retry_delay)
+                    if "request limit exceeded" not in reason:
+                        failures += 1  # unexplained 429: bounded retries
                     continue
 
                 response.raise_for_status()
@@ -353,46 +383,18 @@ def run_weather_ingestion(
             except requests.exceptions.RequestException as e:
                 status_code = e.response.status_code if e.response is not None else "Unknown"
                 logger.warning(
-                    f"Network error on batch {idx + 1}/{len(batches)}, attempt {attempt + 1}/{max_retries} (HTTP status: {status_code}): {e}."
+                    f"Network error on batch {idx + 1}/{len(batches)}, failure {failures + 1}/{max_retries} (HTTP status: {status_code}): {e}."
                 )
                 if status_code == 429:
-                    reason = ""
-                    if e.response is not None:
-                        try:
-                            reason = e.response.json().get("reason", "")
-                        except Exception:
-                            pass
-                    
-                    if "Daily API request limit exceeded" in reason:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
-                        sleep_seconds = (next_midnight - now).total_seconds()
-                        logger.warning(
-                            f"Daily API request limit exceeded on batch {idx + 1}/{len(batches)}. "
-                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_midnight.isoformat()}) before retrying..."
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
-
-                    if "Hourly API request limit exceeded" in reason:
-                        now = datetime.datetime.now(datetime.timezone.utc)
-                        next_hour = (now + datetime.timedelta(hours=1)).replace(minute=1, second=0, microsecond=0)
-                        sleep_seconds = (next_hour - now).total_seconds()
-                        logger.warning(
-                            f"Hourly API request limit exceeded on batch {idx + 1}/{len(batches)}. "
-                            f"Sleeping for {sleep_seconds:.1f} seconds (until {next_hour.isoformat()}) before retrying..."
-                        )
-                        time.sleep(sleep_seconds)
-                        continue
-
-                    logger.warning(f"Sleeping for {retry_delay} seconds due to 429 rate limit...")
-                    time.sleep(retry_delay)
-                    retry_delay *= 2
+                    reason = _429_reason(e.response) if e.response is not None else ""
+                    retry_delay = _rate_limit_sleep(
+                        reason, f"batch {idx + 1}/{len(batches)}", retry_delay)
+                    if "request limit exceeded" not in reason:
+                        failures += 1
                     continue
-                else:
-                    logger.warning("Sleeping for 5.0 seconds before retrying...")
-                    time.sleep(5.0)
-                    continue
+                failures += 1
+                logger.warning("Sleeping for 5.0 seconds before retrying...")
+                time.sleep(5.0)
 
         if not success:
             logger.error(f"Failed to fetch batch {idx + 1}/{len(batches)} after {max_retries} attempts.")
@@ -440,8 +442,15 @@ def run_weather_ingestion(
 
 
 if __name__ == "__main__":
+    import argparse
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    run_weather_ingestion()
+    p = argparse.ArgumentParser(description="Open-Meteo weather ingestion.")
+    p.add_argument("--mode", choices=["reanalysis", "forecast"], default="reanalysis")
+    p.add_argument("--start-date", default="2022-01-01")
+    p.add_argument("--end-date", default="2026-06-01")
+    args = p.parse_args()
+    run_weather_ingestion(start_date=args.start_date, end_date=args.end_date, mode=args.mode)
