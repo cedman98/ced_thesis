@@ -355,20 +355,25 @@ def run_weather_ingestion(
         max_retries = 5
         retry_delay = 15.0
         response = None
+        failures = 0  # network errors / unexplained 429s; quota sleeps don't count
 
-        for attempt in range(max_retries):
+        state["daily_calls_count"] += 1
+        state["last_call_date"] = current_date
+        save_state(state_path, state)
+
+        # Quota 429s (hourly/daily/minutely limit) sleep until the window resets
+        # and retry indefinitely — a 4-year x 430-node backfill *will* exhaust the
+        # free hourly quota many times over; that must never abort the run.
+        while failures < max_retries:
             try:
-                if attempt == 0:
-                    state["daily_calls_count"] += 1
-                    state["last_call_date"] = current_date
-                    save_state(state_path, state)
-
                 response = requests.get(base_url, params=params, timeout=60)
 
-                # Handle rate-limit status code (429)
                 if response.status_code == 429:
+                    reason = _429_reason(response)
                     retry_delay = _rate_limit_sleep(
-                        _429_reason(response), f"batch {idx + 1}/{len(batches)}", retry_delay)
+                        reason, f"batch {idx + 1}/{len(batches)}", retry_delay)
+                    if "request limit exceeded" not in reason:
+                        failures += 1  # unexplained 429: bounded retries
                     continue
 
                 response.raise_for_status()
@@ -378,17 +383,18 @@ def run_weather_ingestion(
             except requests.exceptions.RequestException as e:
                 status_code = e.response.status_code if e.response is not None else "Unknown"
                 logger.warning(
-                    f"Network error on batch {idx + 1}/{len(batches)}, attempt {attempt + 1}/{max_retries} (HTTP status: {status_code}): {e}."
+                    f"Network error on batch {idx + 1}/{len(batches)}, failure {failures + 1}/{max_retries} (HTTP status: {status_code}): {e}."
                 )
                 if status_code == 429:
                     reason = _429_reason(e.response) if e.response is not None else ""
                     retry_delay = _rate_limit_sleep(
                         reason, f"batch {idx + 1}/{len(batches)}", retry_delay)
+                    if "request limit exceeded" not in reason:
+                        failures += 1
                     continue
-                else:
-                    logger.warning("Sleeping for 5.0 seconds before retrying...")
-                    time.sleep(5.0)
-                    continue
+                failures += 1
+                logger.warning("Sleeping for 5.0 seconds before retrying...")
+                time.sleep(5.0)
 
         if not success:
             logger.error(f"Failed to fetch batch {idx + 1}/{len(batches)} after {max_retries} attempts.")
