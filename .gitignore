@@ -16,8 +16,8 @@ GEMINI.md
 CLAUDE.md
 .claude/
 
+# Ignore directories for data, outputs, logs, and models
 /data/
-/documentation/
 /outputs/
 /logs/
 /lightning_logs/
