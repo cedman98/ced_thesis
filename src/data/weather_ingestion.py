@@ -124,6 +124,20 @@ def _429_reason(response) -> str:
         return ""
 
 
+def _call_cost(num_locations: int, start_date: str, end_date: str, num_variables: int) -> float:
+    """Open-Meteo bills bulk (archive/historical-forecast) requests per weighted
+    "call", not per HTTP request: a request costs more once it exceeds 10 variables
+    or 2 weeks of range *for a single location*, scaling as (weeks/2) * (vars/10),
+    and multiplies again per location batched into the same call. E.g. their own
+    example — 2 weeks x 15 variables, single location = 1.5 calls. A naive
+    `+= 1` per HTTP request undercounts multi-year, multi-variable, multi-location
+    batches by two orders of magnitude, so the local daily guard never trips even
+    as the real server-side quota is already exhausted.
+    """
+    weeks = (datetime.date.fromisoformat(end_date) - datetime.date.fromisoformat(start_date)).days / 7.0
+    return num_locations * max(1.0, weeks / 2.0) * max(1.0, num_variables / 10.0)
+
+
 def print_resume_instructions(batch_idx: int) -> None:
     """Outputs clear instructions to the log/console on how to resume execution.
 
@@ -326,12 +340,14 @@ def run_weather_ingestion(
         # Join coordinates into comma-separated strings
         batch_lats_str = ",".join(f"{lat:.1f}" for lat, lon in batch)
         batch_lons_str = ",".join(f"{lon:.1f}" for lat, lon in batch)
+        batch_cost = _call_cost(len(batch), start_date, end_date, len(hourly_variables))
 
         # Check fractional daily threshold limit
-        if not api_key and state["daily_calls_count"] >= DAILY_LIMIT_THRESHOLD:
+        if not api_key and state["daily_calls_count"] + batch_cost >= DAILY_LIMIT_THRESHOLD:
             logger.warning(
-                f"Daily API call count ({state['daily_calls_count']}) has hit the "
-                f"daily free fractional threshold ({DAILY_LIMIT_THRESHOLD}). Gracefully pausing."
+                f"Daily API call count ({state['daily_calls_count']:.0f} + {batch_cost:.0f} "
+                f"for this batch) would hit the daily free fractional threshold "
+                f"({DAILY_LIMIT_THRESHOLD}). Gracefully pausing."
             )
             print_resume_instructions(idx)
             return
@@ -357,7 +373,7 @@ def run_weather_ingestion(
         response = None
         failures = 0  # network errors / unexplained 429s; quota sleeps don't count
 
-        state["daily_calls_count"] += 1
+        state["daily_calls_count"] += batch_cost
         state["last_call_date"] = current_date
         save_state(state_path, state)
 
