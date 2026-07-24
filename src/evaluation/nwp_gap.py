@@ -39,6 +39,7 @@ REANALYSIS_MATRIX = "data/processed/ml_training_matrix.parquet"
 FORECAST_MATRIX = "data/processed/ml_training_matrix_forecast.parquet"
 CSV_OUT = "results/nwp_gap_report.csv"
 MD_OUT = "results/nwp_gap_report.md"
+PNG_OUT = "results/nwp_gap_report.png"
 
 
 def _predict_cf(model, df):
@@ -127,6 +128,39 @@ def _write_markdown(report: pd.DataFrame, common_n: int) -> None:
         f.write("\n".join(lines))
 
 
+def _write_plot(report: pd.DataFrame) -> None:
+    """CF-scale nMAE/nRMSE bars, reanalysis vs forecast weather, wind vs solar.
+    Styled to match the macro-performance bar charts (notebooks/06)."""
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    sns.set_theme(style="whitegrid", context="notebook")
+    plt.rcParams.update({
+        "figure.dpi": 110, "savefig.dpi": 150, "savefig.bbox": "tight",
+        "axes.titleweight": "bold", "axes.grid": True, "grid.alpha": 0.3,
+    })
+    pal = dict(zip(("reanalysis", "forecast"), sns.color_palette("colorblind", 2)))
+
+    cf = report[report.scale == "cf"]
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    for r, tech in enumerate(("wind", "solar")):
+        sub = cf[cf.technology == tech]
+        for c, (m, title) in enumerate((("nmae", "nMAE (lower better)"),
+                                        ("nrmse", "nRMSE (lower better)"))):
+            ax = axes[r, c]
+            weather = ["reanalysis", "forecast"]
+            vals = [sub[sub.weather == w][m].iloc[0] for w in weather]
+            bars = ax.bar(weather, vals, color=[pal[w] for w in weather],
+                          edgecolor="black", linewidth=0.6)
+            ax.bar_label(bars, fmt="%.3f", fontsize=9, padding=2)
+            ax.set_title(f"{tech.title()} — {title}")
+            ax.set_ylim(0, max(vals) * 1.2)
+    fig.suptitle("NWP gap: reanalysis vs forecast weather (out-of-fold, purged CV, CF scale)", y=1.01)
+    fig.tight_layout()
+    fig.savefig(PNG_OUT)
+    plt.close(fig)
+
+
 def run(n_splits: int = 4, test_duration: str = "365D") -> pd.DataFrame:
     for path in (REANALYSIS_MATRIX, FORECAST_MATRIX):
         if not os.path.exists(path):
@@ -149,7 +183,8 @@ def run(n_splits: int = 4, test_duration: str = "365D") -> pd.DataFrame:
     os.makedirs("results", exist_ok=True)
     report.to_csv(CSV_OUT, index=False)
     _write_markdown(report, int(report["n"].max()))
-    logger.info(f"Wrote {CSV_OUT} and {MD_OUT}")
+    _write_plot(report)
+    logger.info(f"Wrote {CSV_OUT}, {MD_OUT}, {PNG_OUT}")
     logger.info("\n" + report.to_string(index=False))
     return report
 
