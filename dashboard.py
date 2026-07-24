@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.data.districts import district_registry, load_district_fleets, load_district_boundaries
-from src.dashboard.forecast_service import forecast_district
+from src.dashboard.forecast_service import forecast_district, local_day_window
 
 st.set_page_config(page_title="Brandenburg Generation Forecast", page_icon="⚡", layout="wide")
 
@@ -45,8 +45,8 @@ def get_fleets():
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def live_district(name, issue_hour):
-    fc, caps, _ = forecast_district(name, get_fleets()[name], pause=0.0)
+def live_district(name, window):
+    fc, caps, _ = forecast_district(name, get_fleets()[name], pause=0.0, window=window)
     return fc, caps
 
 
@@ -187,6 +187,7 @@ choice = st.sidebar.selectbox("Region", [AGG] + sorted(names))
 parquet = load_state_parquet(os.path.getmtime(PARQUET) if os.path.exists(PARQUET) else 0)
 issue_hour = pd.Timestamp.now(tz='UTC').floor('h')
 issue_local = issue_hour.tz_convert(LOCAL)
+window = local_day_window(LOCAL)
 src_note = ("pre-computed batch (notebook 11)" if parquet is not None else "live Open-Meteo NWP")
 st.sidebar.caption(f"Source: {src_note}")
 st.sidebar.caption("Uncalibrated districts use identity downscaling (physics-trust); "
@@ -205,7 +206,7 @@ try:
             prog = st.progress(0.0, "Running live state-wide forecast…")
             fleets = get_fleets()
             for i, (name, fleet) in enumerate(fleets.items(), 1):
-                f, _, _ = forecast_district(name, fleet, pause=0.5)
+                f, _, _ = forecast_district(name, fleet, pause=0.5, window=window)
                 frames.append(f[MW_COLS])
                 per_dist[name] = f["wind_median_mw"].sum() + f["solar_median_mw"].sum()
                 prog.progress(i / len(fleets), f"{name} ({i}/18)")
@@ -221,7 +222,7 @@ try:
             fc = parquet.xs(choice, level="district")
             caps = {"wind": fc["wind_nameplate_mw"].iloc[0], "solar": fc["solar_nameplate_mw"].iloc[0]}
         else:
-            fc, caps = live_district(choice, issue_hour)
+            fc, caps = live_district(choice, window)
         st.sidebar.markdown("**Installed capacity**")
         st.sidebar.metric("Wind", f"{caps['wind']:,.1f} MW")
         st.sidebar.metric("Solar", f"{caps['solar']:,.1f} MW")

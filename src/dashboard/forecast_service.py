@@ -36,18 +36,27 @@ FORECAST_VARS = [
 CALIB_NAME = 'affine_calibration.json'
 
 
-def fetch_forecast_weather(node_coords, forecast_days=2, max_retries=4, pause=0.0):
+def local_day_window(tz="Europe/Berlin"):
+    """UTC (start, end) bounding [00:00, 24:00) of the current calendar day in `tz`."""
+    start_local = pd.Timestamp.now(tz=tz).normalize()
+    return start_local.tz_convert('UTC'), (start_local + pd.Timedelta(days=1)).tz_convert('UTC')
+
+
+def fetch_forecast_weather(node_coords, forecast_days=2, past_days=1, max_retries=4, pause=0.0):
     """Open-Meteo forecast weather for each (lat, lon) node -> {(lat,lon): DataFrame}.
     One batched API call for all nodes, with exponential backoff on 429/5xx so the
     sequential state-wide batch loop degrades gracefully under rate-limiting.
-    `pause` sleeps after a successful call (politeness between districts)."""
+    `past_days=1` guarantees the response covers local midnight even when it falls
+    before the UTC day boundary (CEST is UTC+2), so callers slicing to a local
+    calendar-day window always have full coverage. `pause` sleeps after a
+    successful call (politeness between districts)."""
     import time
     cfg = load_config()
     url = cfg['open_meteo']['forecast_url']
     lats = ",".join(str(la) for la, lo in node_coords)
     lons = ",".join(str(lo) for la, lo in node_coords)
     params = {"latitude": lats, "longitude": lons, "hourly": ",".join(FORECAST_VARS),
-              "forecast_days": forecast_days, "timezone": "UTC"}
+              "forecast_days": forecast_days, "past_days": past_days, "timezone": "UTC"}
 
     backoff = 2.0
     for attempt in range(max_retries):
@@ -92,11 +101,14 @@ def _downscale_interval(X, tech, c):
     return pd.DataFrame(cols, index=X.index)
 
 
-def forecast_from_fleet(fleet, calib_provider, horizon_h=24, weather=None, pause=0.0):
+def forecast_from_fleet(fleet, calib_provider, horizon_h=24, weather=None, pause=0.0, window=None):
     """Core inference shared by the municipal (radius) and district (polygon) paths.
 
     `fleet` is the (wind, solar, wind_mw, solar_mw, nodes) tuple; `calib_provider(tech,
-    cap_mw)` returns the resolved {scale, offset, cap_mw}. Returns (forecast_df, caps_mw).
+    cap_mw)` returns the resolved {scale, offset, cap_mw}. `window`, if given, is a
+    (start_utc, end_utc) tuple (see `local_day_window`) selecting a fixed calendar
+    window instead of the default rolling next-`horizon_h` from now. Returns
+    (forecast_df, caps_mw).
     """
     nodes = fleet[4]
     node_coords = list(dict.fromkeys(zip(nodes['lat_snap'], nodes['lon_snap'])))
@@ -104,10 +116,14 @@ def forecast_from_fleet(fleet, calib_provider, horizon_h=24, weather=None, pause
         weather = fetch_forecast_weather(node_coords, pause=pause)
 
     X, caps = assemble_municipal_features(*fleet, lambda la, lo: weather.get((la, lo)))
-    now = pd.Timestamp.now(tz='UTC').ceil('h')
-    X = X[X.index >= now].head(horizon_h)
+    if window is not None:
+        start, end = window
+        X = X[(X.index >= start) & (X.index < end)]
+    else:
+        now = pd.Timestamp.now(tz='UTC').ceil('h')
+        X = X[X.index >= now].head(horizon_h)
     if X.empty:
-        raise RuntimeError("No forecast hours >= now; weather fetch may have failed.")
+        raise RuntimeError("No forecast hours in requested window; weather fetch may have failed.")
 
     out = pd.concat([_downscale_interval(X, 'wind', calib_provider('wind', caps['wind'])),
                      _downscale_interval(X, 'solar', calib_provider('solar', caps['solar']))], axis=1)
@@ -125,7 +141,7 @@ def forecast_municipality(muni, horizon_h=24, weather=None):
     return out, caps, calib
 
 
-def forecast_district(name, fleet, mode='identity', horizon_h=24, weather=None, pause=0.0):
+def forecast_district(name, fleet, mode='identity', horizon_h=24, weather=None, pause=0.0, window=None):
     """24h-ahead forecast for an (uncalibrated) district using the fallback calibration.
     Returns (forecast_df, caps_mw, calib_used)."""
     from src.data.districts import resolve_calibration
@@ -135,7 +151,7 @@ def forecast_district(name, fleet, mode='identity', horizon_h=24, weather=None, 
         used[tech] = resolve_calibration(tech, cap, mode)
         return used[tech]
 
-    out, caps = forecast_from_fleet(fleet, provider, horizon_h, weather, pause=pause)
+    out, caps = forecast_from_fleet(fleet, provider, horizon_h, weather, pause=pause, window=window)
     return out, caps, used
 
 
