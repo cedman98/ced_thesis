@@ -24,6 +24,7 @@ from src.validation.kw_features import (
     municipal_fleet, assemble_municipal_features, apply_affine, load_municipalities,
 )
 from src.models.train_lightgbm import QUANTILES, quantile_model_path
+from src.evaluation.conformal import apply_conformal
 from src.features.schema import FEATURE_COLS, CF_CLIP
 
 logger = logging.getLogger(__name__)
@@ -81,15 +82,28 @@ def fetch_forecast_weather(node_coords, forecast_days=2, max_retries=4, pause=0.
 
 def _downscale_interval(X, tech, c):
     """LightGBM quantile CF -> calibrated MW (lower, median, upper) for `tech`.
-    `c` is the resolved per-tech calibration {scale, offset, cap_mw}."""
+    `c` is the resolved per-tech calibration {scale, offset, cap_mw}, optionally
+    carrying the frozen conformal correction {conformal_q, conformal_w_floor}.
+
+    The affine step rescales the interval width without re-deriving it locally,
+    which is why municipal coverage collapses far below the 80% nominal. Where the
+    municipal validator has fitted a conformal correction, applying it here is
+    what makes the served interval trustworthy rather than merely plausible.
+    Districts with no fitted calibration have no Q and fall through unchanged.
+    """
     P = np.vstack([np.clip(joblib.load(quantile_model_path(tech, q)).predict(X[FEATURE_COLS]), 0.0, CF_CLIP)
                    for q in QUANTILES]).T
     P.sort(axis=1)  # enforce q10 <= q50 <= q90
-    cols = {}
-    for label, col in (('lower', 0), ('median', 1), ('upper', 2)):
-        kw = apply_affine(P[:, col] * c['cap_mw'] * 1000.0, c['scale'], c['offset'])
-        cols[f'{tech}_{label}_mw'] = kw / 1000.0  # kW -> MW
-    return pd.DataFrame(cols, index=X.index)
+    kw = {label: apply_affine(P[:, col] * c['cap_mw'] * 1000.0, c['scale'], c['offset'])
+          for label, col in (('lower', 0), ('median', 1), ('upper', 2))}
+    if c.get('conformal_q'):
+        kw['lower'], kw['upper'] = apply_conformal(
+            kw['lower'], kw['upper'], c['conformal_q'], c.get('conformal_w_floor', 0.0))
+        # A negative Q shrinks the band; keep it straddling the median so the
+        # served interval can never invert.
+        kw['lower'] = np.minimum(kw['lower'], kw['median'])
+        kw['upper'] = np.maximum(kw['upper'], kw['median'])
+    return pd.DataFrame({f'{tech}_{k}_mw': v / 1000.0 for k, v in kw.items()}, index=X.index)
 
 
 def forecast_from_fleet(fleet, calib_provider, horizon_h=24, weather=None, pause=0.0):

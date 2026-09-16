@@ -18,7 +18,7 @@ from pytorch_forecasting.metrics import RMSE
 from pytorch_forecasting.data import GroupNormalizer
 
 from src.features.validation_splitter import PurgedExpandingWindowSplitter
-from src.features.schema import TARGET_CF, tft_known_reals
+from src.features.schema import TARGET_CF, TARGET_MW, CAP_COLS, tft_known_reals
 from src.evaluation import metrics as M
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -39,7 +39,35 @@ def _dataset(data, target_col, known_reals):
     )
 
 
-def train_and_evaluate_tft(matrix_path: str = 'data/processed/ml_training_matrix.parquet') -> None:
+def train_and_evaluate_tft(matrix_path: str = 'data/processed/ml_training_matrix.parquet',
+                           known_reals_fn=tft_known_reals, model_name: str = "tft",
+                           out_csv: str = None, oof_path: str = None,
+                           save_production: bool = True, seed: int = 42) -> None:
+    """Purged-CV TFT training.
+
+    The non-default arguments exist for the feature-ablation driver:
+    `known_reals_fn` swaps the decoder's known-future feature list, `model_name`
+    tags the metric rows so an ablated run cannot collide with the production
+    rows, `out_csv` redirects them, and `save_production=False` stops a
+    deliberately crippled model from overwriting the production checkpoint.
+
+    `oof_path` dumps per-timestamp held-out predictions for the significance
+    tests. The TFT emits 24 overlapping decoder windows per hour; averaging them
+    would give it a free ensembling advantage the single-shot models do not have,
+    so only the h=24 step is exported — one clean value per timestamp at exactly
+    the day-ahead horizon this thesis targets. Its nMAE therefore differs slightly
+    from the CV table, which averages over horizons 1-24.
+    """
+    # Unseeded, this pipeline moved 5-12% between runs (weight init, dropout,
+    # dataloader shuffling) — larger than most of the between-model gaps the Ch.6
+    # ranking rests on. Seeding does not remove that variance, it pins one draw so
+    # the reported numbers are reproducible from the committed code.
+    # ponytail: seeds the run, not bitwise-deterministic; Trainer(deterministic=True)
+    # if a fold ever has to be reproduced op-for-op (errors on some cuDNN kernels).
+    # `seed` is exposed so the spread itself can be measured across replicates —
+    # pinning one draw makes the run reproducible, it does not make the rank stable.
+    pl.seed_everything(seed, workers=True)
+
     df = pd.read_parquet(matrix_path)
     df.index = pd.to_datetime(df.index, utc=True)
     df = df.sort_index()
@@ -50,13 +78,19 @@ def train_and_evaluate_tft(matrix_path: str = 'data/processed/ml_training_matrix
         n_splits=4, test_duration=pd.Timedelta(days=365), purge_gap=pd.Timedelta(hours=72)
     )
 
-    rows = []
-    for tech in ("wind", "solar"):
+    rows, oof = [], []
+    for ti, tech in enumerate(("wind", "solar")):
         target_col = TARGET_CF[tech]
-        known_reals = tft_known_reals(tech)
+        known_reals = known_reals_fn(tech)
         logger.info(f"=== TFT {tech.upper()} (target {target_col}) ===")
 
         for fold, (train_idx, test_idx) in enumerate(splitter.split(df), start=1):
+            # Re-seed per (technology, fold) rather than once per run. Seeding only
+            # at entry made a fold's draw depend on everything trained before it —
+            # the production refit below sits inside this loop, so solar reproduced
+            # only when save_production matched, while wind reproduced either way.
+            pl.seed_everything(seed + 100 * ti + fold, workers=True)
+
             # Early-stopping validation = last 10% of the TRAIN window (with its
             # encoder history). The test fold must never drive epoch selection —
             # it previously served as val_loss, leaking test info into the metrics.
@@ -90,14 +124,37 @@ def train_and_evaluate_tft(matrix_path: str = 'data/processed/ml_training_matrix
 
             best = (TemporalFusionTransformer.load_from_checkpoint(ckpt_cb.best_model_path)
                     if ckpt_cb.best_model_path else tft)
-            pred = best.predict(test_dl, return_y=True)
+            pred = best.predict(test_dl, return_y=True, return_x=bool(oof_path))
             y_pred = np.clip(pred.output.flatten().cpu().numpy(), 0.0, 1.5)
             y_true = pred.y[0].flatten().cpu().numpy()
 
-            rows += M.cv_rows("tft", tech, fold, y_true, y_pred)
+            rows += M.cv_rows(model_name, tech, fold, y_true, y_pred)
             logger.info(f"{tech} TFT fold {fold} | CF nMAE {M.nmae(y_true, y_pred):.3f} corr {M.pearson_r(y_true, y_pred):.3f}")
 
-        # Production model on the full dataset + XAI interpretation.
+            if oof_path:
+                # decoder_time_idx is (n_windows, horizon); flattening it matches
+                # the flattening of output/y above, so the last column selects the
+                # h=24 step of every window.
+                tix = pred.x["decoder_time_idx"].cpu().numpy()
+                last = tix[:, -1]
+                p_last = y_pred.reshape(tix.shape)[:, -1]
+                sub = df.iloc[last]
+                oof.append(pd.DataFrame({
+                    "timestamp": sub.index, "technology": tech, "fold": fold,
+                    "prior_cf": sub[f"{tech}_prior_cf"].to_numpy(),
+                    "y_cf": sub[target_col].to_numpy(),
+                    "cap_mw": sub[CAP_COLS[tech]].to_numpy(),
+                    "y_mw": sub[TARGET_MW[tech]].to_numpy(),
+                    "model": model_name, "pred_cf": p_last,
+                    "pred_mw": p_last * sub[CAP_COLS[tech]].to_numpy(),
+                }))
+
+        if not save_production:
+            continue
+
+        # Production model on the full dataset + XAI interpretation. Seeded too,
+        # so the shipped checkpoint and its attention figures are reproducible.
+        pl.seed_everything(seed + 100 * ti, workers=True)
         logger.info(f"Retraining {tech.upper()} TFT on full dataset...")
         full_dataset = _dataset(df, target_col, known_reals)
         full_dl = full_dataset.to_dataloader(train=True, batch_size=128, num_workers=4)
@@ -125,9 +182,12 @@ def train_and_evaluate_tft(matrix_path: str = 'data/processed/ml_training_matrix
         trainer_full.save_checkpoint(models_dir / f'tft_{tech}_production.ckpt')
         logger.info(f"Saved TFT {tech} production checkpoint.")
 
-    M.append_cv_metrics(rows)
+    M.append_cv_metrics(rows, **({"csv_path": out_csv} if out_csv else {}))
+    if oof:
+        M.append_oof(pd.concat(oof, ignore_index=True), path=oof_path)
+        logger.info(f"Saved TFT per-timestamp OOF predictions -> {oof_path}")
     logger.info("Saved TFT macro CV metrics.")
 
 
 if __name__ == "__main__":
-    train_and_evaluate_tft()
+    train_and_evaluate_tft(oof_path="results/macro_oof_predictions.parquet")

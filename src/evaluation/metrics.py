@@ -171,6 +171,30 @@ def append_cv_metrics(rows, csv_path="results/macro_cv_metrics.csv"):
     return combined
 
 
+def append_oof(rows, path="results/macro_oof_predictions.parquet"):
+    """Merge per-point out-of-fold predictions into the shared tidy parquet,
+    de-duplicating on (technology, model, timestamp) keep-last.
+
+    The tree models are exported in one pass by export_predictions.py; the heavy
+    sequence models (BiLSTM, TFT) write their own rows from inside their trainers
+    because refitting them just to export is wasteful. Both land here so the
+    significance tests can compare all five models point-for-point.
+    """
+    import os
+    new = pd.DataFrame(rows)
+    if new.empty:
+        return new
+    new["timestamp"] = pd.to_datetime(new["timestamp"], utc=True)
+    if os.path.exists(path):
+        prev = pd.read_parquet(path)
+        prev["timestamp"] = pd.to_datetime(prev["timestamp"], utc=True)
+        new = pd.concat([prev, new], ignore_index=True)
+    new = new.drop_duplicates(subset=["technology", "model", "timestamp"], keep="last")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new.to_parquet(path, index=False)
+    return new
+
+
 if __name__ == "__main__":
     # Self-check: perfect prediction ~ 0 error; persistence of a daily cycle is
     # strong; climatology beats the global mean on a seasonal signal.
