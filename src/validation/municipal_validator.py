@@ -19,6 +19,7 @@ import torch
 from src.validation.kw_features import (
     build_municipal_features, load_municipalities, calibrate_affine, apply_affine,
 )
+from src.evaluation.conformal import fit_conformal, apply_conformal, append_coverage
 from src.features.schema import FEATURE_COLS, CF_CLIP
 from src.models.train_bilstm import BiLSTM
 from src.models.train_lightgbm import QUANTILES, quantile_model_path
@@ -48,7 +49,14 @@ def predict_cf_lightgbm_interval(tech, X):
 
 def _evaluate_interval(tech, lo_cf, med_cf, hi_cf, actuals, cap_mw, cal_idx, val_idx):
     """Downscale + calibrate the LightGBM median, then apply the SAME affine to the
-    lower/upper bounds (scale>0 keeps the interval ordered). Adds PICP + width."""
+    lower/upper bounds (scale>0 keeps the interval ordered). Adds PICP + width.
+
+    The affine step rescales the interval width but never re-derives what that
+    width should be locally, which is why municipal PICP collapses far below the
+    80% nominal. Split conformal (width-normalised CQR) repairs it, fitted on the
+    SAME calibration split that already fits the affine — so no extra data is
+    consumed and the validation split stays untouched.
+    """
     y = actuals[ACTUAL_COL[tech]]
     base_med = med_cf * cap_mw * 1000.0
     scale, offset = calibrate_affine(y.reindex(cal_idx), base_med.reindex(cal_idx))
@@ -56,14 +64,24 @@ def _evaluate_interval(tech, lo_cf, med_cf, hi_cf, actuals, cap_mw, cal_idx, val
     lo_kw = pd.Series(apply_affine(lo_cf * cap_mw * 1000.0, scale, offset), index=med_cf.index)
     hi_kw = pd.Series(apply_affine(hi_cf * cap_mw * 1000.0, scale, offset), index=med_cf.index)
 
+    q, w_floor = fit_conformal(y.reindex(cal_idx), lo_kw.reindex(cal_idx), hi_kw.reindex(cal_idx))
+    lo_c, hi_c = apply_conformal(lo_kw, hi_kw, q, w_floor)
+    lo_ckw = pd.Series(lo_c, index=lo_kw.index)
+    hi_ckw = pd.Series(hi_c, index=hi_kw.index)
+
     yv = y.reindex(val_idx)
     row = M.all_metrics(yv, med_kw.reindex(val_idx))
     raw = M.all_metrics(yv, base_med.reindex(val_idx))
     row.update(model='lightgbm', technology=tech, scale=round(scale, 4), offset=round(offset, 1),
                nmae_k1=raw['nmae'], mbe_k1=raw['mbe'],
                picp=M.picp(yv, lo_kw.reindex(val_idx), hi_kw.reindex(val_idx)),
-               mpiw_norm=M.mpiw_norm(yv, lo_kw.reindex(val_idx), hi_kw.reindex(val_idx)))
-    return row, med_kw, lo_kw, hi_kw, {'scale': scale, 'offset': offset, 'cap_mw': cap_mw}
+               mpiw_norm=M.mpiw_norm(yv, lo_kw.reindex(val_idx), hi_kw.reindex(val_idx)),
+               picp_conformal=M.picp(yv, lo_ckw.reindex(val_idx), hi_ckw.reindex(val_idx)),
+               mpiw_norm_conformal=M.mpiw_norm(yv, lo_ckw.reindex(val_idx), hi_ckw.reindex(val_idx)),
+               conformal_q=round(q, 4))
+    params = {'scale': scale, 'offset': offset, 'cap_mw': cap_mw,
+              'conformal_q': q, 'conformal_w_floor': w_floor}
+    return row, med_kw, lo_kw, hi_kw, lo_ckw, hi_ckw, params
 
 
 def predict_cf_bilstm(tech, X):
@@ -136,17 +154,24 @@ def validate_municipality(muni):
     cal_idx, val_idx = X.index[:cut], X.index[cut:]
 
     merged = actuals.copy()
-    results, calib = [], {}
+    results, calib, coverage = [], {}, []
     for tech in ('wind', 'solar'):
         # LightGBM: quantile regression -> median point forecast + 80% interval.
         lo_cf, med_cf, hi_cf = predict_cf_lightgbm_interval(tech, X)
-        row, med_kw, lo_kw, hi_kw, params = _evaluate_interval(
+        row, med_kw, lo_kw, hi_kw, lo_ckw, hi_ckw, params = _evaluate_interval(
             tech, lo_cf, med_cf, hi_cf, actuals, caps[tech], cal_idx, val_idx)
         results.append(row)
         calib[f'lightgbm_{tech}'] = params
         merged[f'pred_lightgbm_{tech}'] = med_kw
         merged[f'pred_lightgbm_{tech}_lower'] = lo_kw
         merged[f'pred_lightgbm_{tech}_upper'] = hi_kw
+        merged[f'pred_lightgbm_{tech}_lower_conformal'] = lo_ckw
+        merged[f'pred_lightgbm_{tech}_upper_conformal'] = hi_ckw
+        coverage.append(dict(
+            scope='municipality', municipality=slug, technology=tech, model='lightgbm',
+            fold=pd.NA, n=row['n'], picp_before=row['picp'], picp_after=row['picp_conformal'],
+            mpiw_norm_before=row['mpiw_norm'], mpiw_norm_after=row['mpiw_norm_conformal'],
+            conformal_q=params['conformal_q'], conformal_w_floor=params['conformal_w_floor']))
 
         for model_name in ('xgboost', 'ebm'):
             cf = predict_cf_tree(model_name, tech, X)
@@ -171,8 +196,10 @@ def validate_municipality(muni):
         base.update(model='persistence', technology=tech, scale=1.0, offset=0.0)
         results.append(base)
 
+    append_coverage(coverage)
     cols = ['municipality', 'model', 'technology', 'scale', 'offset', 'n', 'nmae', 'mbe',
-            'corr', 'picp', 'mpiw_norm', 'nmae_k1', 'mbe_k1', 'mae', 'rmse']
+            'corr', 'picp', 'picp_conformal', 'mpiw_norm', 'mpiw_norm_conformal',
+            'conformal_q', 'nmae_k1', 'mbe_k1', 'mae', 'rmse']
     res_df = pd.DataFrame(results)
     res_df['municipality'] = slug
     res_df = res_df[[c for c in cols if c in res_df.columns]]

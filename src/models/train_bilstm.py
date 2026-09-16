@@ -96,21 +96,46 @@ def _predict_cf(model, loader, scaler_y, device):
     return scaler_y.inverse_transform(np.array(preds).reshape(-1, 1)).flatten()
 
 
-def train_and_evaluate_bilstm(matrix_path: str = 'data/processed/ml_training_matrix.parquet') -> None:
+def train_and_evaluate_bilstm(matrix_path: str = 'data/processed/ml_training_matrix.parquet',
+                              feature_cols=FEATURE_COLS, model_name: str = "bilstm",
+                              out_csv: str = None, oof_path: str = None,
+                              save_production: bool = True, seed: int = 42) -> None:
+    """Purged-CV BiLSTM training.
+
+    The non-default arguments exist for the feature-ablation driver: `feature_cols`
+    drops the physics prior, `model_name` tags the metric rows so an ablated run
+    cannot collide with the production rows, `out_csv` redirects them, and
+    `save_production=False` stops a deliberately crippled model from overwriting
+    the production weights. `oof_path` dumps the per-timestamp held-out
+    predictions the significance tests need.
+    """
+    # See train_tft: unseeded run-to-run spread (BiLSTM solar moved 0.2751 ->
+    # 0.3055) exceeded the between-model gaps being reported. Covers the
+    # shuffle=True dataloaders below, which draw from the global torch RNG.
+    # ponytail: seeds the run, not bitwise-deterministic; use
+    # torch.use_deterministic_algorithms(True) if a fold must be reproduced op-for-op.
+    # `seed` is exposed so the spread itself can be measured across replicates.
+    torch.manual_seed(seed)
+
     df = pd.read_parquet(matrix_path)
     df.index = pd.to_datetime(df.index, utc=True)
     df = df.sort_index()
-    X = df[FEATURE_COLS]
+    X = df[feature_cols]
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     splitter = PurgedExpandingWindowSplitter(
         n_splits=4, test_duration=pd.Timedelta(days=365), purge_gap=pd.Timedelta(hours=72)
     )
 
-    rows = []
-    for tech in ("wind", "solar"):
+    rows, oof = [], []
+    for ti, tech in enumerate(("wind", "solar")):
         y = df[TARGET_CF[tech]].values.reshape(-1, 1)
         for fold, (tr, te) in enumerate(splitter.split(df), start=1):
+            # Per-(technology, fold) seed, matching train_tft. This trainer's
+            # production block sits after both technologies, so a single entry
+            # seed happened to reproduce — but only by luck of that ordering.
+            torch.manual_seed(seed + 100 * ti + fold)
+
             sx, sy = StandardScaler(), StandardScaler()
             Xtr = sx.fit_transform(X.iloc[tr]); Xte = sx.transform(X.iloc[te])
             ytr = sy.fit_transform(y[tr]).flatten(); yte = sy.transform(y[te]).flatten()
@@ -122,19 +147,35 @@ def train_and_evaluate_bilstm(matrix_path: str = 'data/processed/ml_training_mat
             tl = DataLoader(TimeSeriesDataset(Xtr[:cut], ytr[:cut]), batch_size=256, shuffle=True)
             vl = DataLoader(TimeSeriesDataset(Xtr[cut:], ytr[cut:]), batch_size=256, shuffle=False)
             te_dl = DataLoader(TimeSeriesDataset(Xte, yte), batch_size=256, shuffle=False)
-            model = train_model(BiLSTM(len(FEATURE_COLS)), tl, vl)
+            model = train_model(BiLSTM(len(feature_cols)), tl, vl)
 
             pred_cf = np.clip(_predict_cf(model, te_dl, sy, device), 0.0, CF_CLIP)
             # Targets/caps aligned: dataset emits target at idx+SEQ_LEN.
             y_cf = df[TARGET_CF[tech]].iloc[te].values[SEQ_LEN:]
             cap = df[CAP_COLS[tech]].iloc[te].values[SEQ_LEN:]
             y_mw = df[TARGET_MW[tech]].iloc[te].values[SEQ_LEN:]
-            rows += M.cv_rows("bilstm", tech, fold, y_cf, pred_cf, cap, y_mw)
+            rows += M.cv_rows(model_name, tech, fold, y_cf, pred_cf, cap, y_mw)
             logger.info(f"{tech} BiLSTM fold {fold} | CF nMAE {M.nmae(y_cf, pred_cf):.3f} corr {M.pearson_r(y_cf, pred_cf):.3f}")
 
-    M.append_cv_metrics(rows)
+            if oof_path:
+                sub = df.iloc[te].iloc[SEQ_LEN:]
+                oof.append(pd.DataFrame({
+                    "timestamp": sub.index, "technology": tech, "fold": fold,
+                    "prior_cf": sub[f"{tech}_prior_cf"].to_numpy(),
+                    "y_cf": y_cf, "cap_mw": cap, "y_mw": y_mw,
+                    "model": model_name, "pred_cf": pred_cf, "pred_mw": pred_cf * cap,
+                }))
+
+    M.append_cv_metrics(rows, **({"csv_path": out_csv} if out_csv else {}))
+    if oof:
+        M.append_oof(pd.concat(oof, ignore_index=True), path=oof_path)
+        logger.info(f"Saved BiLSTM per-timestamp OOF predictions -> {oof_path}")
+
+    if not save_production:
+        return
 
     # Production models + scalers (scalers are required for municipal inference).
+    torch.manual_seed(seed)  # shipped weights reproducible independently of the CV loop
     os.makedirs('models', exist_ok=True)
     scalers = {}
     sx = StandardScaler(); Xf = sx.fit_transform(X)
@@ -143,13 +184,13 @@ def train_and_evaluate_bilstm(matrix_path: str = 'data/processed/ml_training_mat
         sy = StandardScaler()
         yf = sy.fit_transform(df[TARGET_CF[tech]].values.reshape(-1, 1)).flatten()
         loader = DataLoader(TimeSeriesDataset(Xf, yf), batch_size=256, shuffle=True)
-        model = train_model(BiLSTM(len(FEATURE_COLS)), loader, loader, epochs=12, patience=12)
+        model = train_model(BiLSTM(len(feature_cols)), loader, loader, epochs=12, patience=12)
         torch.save(model.state_dict(), f'models/bilstm_{tech}.pth')
         scalers[tech] = sy
-    scalers['meta'] = {'seq_len': SEQ_LEN, 'input_size': len(FEATURE_COLS), 'hidden': HIDDEN, 'layers': LAYERS, 'features': FEATURE_COLS}
+    scalers['meta'] = {'seq_len': SEQ_LEN, 'input_size': len(feature_cols), 'hidden': HIDDEN, 'layers': LAYERS, 'features': feature_cols}
     joblib.dump(scalers, 'models/bilstm_scalers.pkl')
     logger.info("Saved BiLSTM models + scalers.")
 
 
 if __name__ == "__main__":
-    train_and_evaluate_bilstm()
+    train_and_evaluate_bilstm(oof_path="results/macro_oof_predictions.parquet")
